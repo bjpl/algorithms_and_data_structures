@@ -1,0 +1,6 @@
+2025-09-13 16:45:51,005 - __main__ - INFO - Running in test mode
+2025-09-13 16:45:51,005 - __main__ - ERROR - Test mode failed
+Traceback (most recent call last):
+  File "C:\Users\brand\Development\Project_Workspace\algorithms_and_data_structures\src\main_improved.py", line 159, in run_test
+    assert cli.curriculum_service is not None
+AttributeError: 'CurriculumCLI' object has no attribute 'curriculum_service'
