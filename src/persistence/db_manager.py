@@ -390,7 +390,7 @@ DEPENDENCIES = []  # List of migration versions this depends on
 
 class DatabaseConfig:
     """Helper class for database configuration management."""
-    
+
     @staticmethod
     def from_env() -> Dict[str, Any]:
         """Load database configuration from environment variables."""
@@ -407,13 +407,13 @@ class DatabaseConfig:
             'pool_size': int(os.getenv('DB_POOL_SIZE', '10')),
             'timeout': int(os.getenv('DB_TIMEOUT', '30'))
         }
-    
+
     @staticmethod
     def from_file(config_path: Path) -> Dict[str, Any]:
         """Load database configuration from JSON file."""
         with open(config_path, 'r') as f:
             return json.load(f)
-    
+
     @staticmethod
     def get_default() -> Dict[str, Any]:
         """Get default database configuration."""
@@ -426,3 +426,7 @@ class DatabaseConfig:
             'timeout': 30,
             'backup_retention': 7  # days
         }
+
+
+# Backward compatibility alias
+DBManager = DatabaseManager

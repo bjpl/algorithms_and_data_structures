@@ -10,18 +10,22 @@ from .db_manager import DatabaseManager
 from .storage_backend import StorageBackend, JSONBackend, SQLiteBackend, PostgreSQLBackend
 from .repositories.base import BaseRepository
 from .repositories.curriculum_repo import CurriculumRepository
-from .repositories.content_repo import ContentRepository  
-from .repositories.progress_repo import ProgressRepository
+from .repositories.content_repo import ContentRepository
+from .repositories.progress_repo import UserProgressRepository
+
+# Backward compatibility alias
+ProgressRepository = UserProgressRepository
 
 __all__ = [
     'DatabaseManager',
     'StorageBackend',
-    'JSONBackend', 
+    'JSONBackend',
     'SQLiteBackend',
     'PostgreSQLBackend',
     'BaseRepository',
     'CurriculumRepository',
     'ContentRepository',
+    'UserProgressRepository',
     'ProgressRepository'
 ]
 
