@@ -9,7 +9,7 @@
 ## 📋 Quick Navigation
 
 - [🚨 Critical Operating Rules](#critical-operating-rules)
-- [⚖️ Mandatory Agent Directives (25)](#mandatory-agent-directives)
+- [⚖️ Mandatory Agent Directives (26)](#mandatory-agent-directives)
 - [🎯 Project Configuration](#project-configuration)
 - [🚀 Available Agents & Tools](#available-agents--tools)
 - [📚 Technical Reference](#technical-reference)
@@ -78,6 +78,51 @@
 - Don't create documentation *preemptively* (before features exist)
 - DO update documentation *as features are built* (MANDATORY-12)
 - Distinction: Necessary updates vs. unnecessary new files
+
+### 📖 MANDATORY: Reference Documentation Reading Protocol
+
+**CRITICAL**: The following reference files are NOT auto-loaded but MUST be read proactively when relevant:
+
+**REQUIRED READING TRIGGERS**:
+
+1. **Agent Selection/Usage** → **MUST READ** `docs/AGENT_REFERENCE.md`
+   - When selecting which agent(s) to use for a task
+   - When uncertain about agent capabilities
+   - When planning multi-agent workflows
+   - When user asks about specific agents
+
+2. **SPARC Workflows** → **MUST READ** `docs/SPARC_EXAMPLES.md`
+   - When implementing SPARC methodology
+   - When user requests TDD workflow
+   - When planning complex feature development
+   - When uncertain about SPARC phase execution
+
+3. **MCP Setup/Configuration** → **MUST READ** `docs/MCP_SETUP_GUIDE.md`
+   - When MCP tools are not working
+   - When user asks about MCP setup
+   - When troubleshooting swarm coordination
+   - When configuring MCP servers
+
+**ENFORCEMENT**:
+- Before spawning any agent via Task tool, verify agent capabilities by reading `docs/AGENT_REFERENCE.md`
+- Before executing SPARC commands, consult examples in `docs/SPARC_EXAMPLES.md`
+- When MCP tools fail or setup is needed, read `docs/MCP_SETUP_GUIDE.md`
+- These reads should be batched with other operations when possible
+
+**PATTERN**:
+```javascript
+// ✅ CORRECT: Read reference docs BEFORE using capabilities
+[Single Message]:
+  Read "docs/AGENT_REFERENCE.md"  // Verify agent capabilities
+  Task("Backend Developer", "...", "backend-dev")  // Use agent
+  Task("Code Reviewer", "...", "reviewer")
+```
+
+```javascript
+// ❌ WRONG: Using agents without verifying capabilities
+[Single Message]:
+  Task("Some Agent", "...", "unknown-agent")  // May fail
+```
 
 ---
 
@@ -254,6 +299,16 @@
 → Schedule time for addressing technical debt
 → Document intentional shortcuts and their trade-offs
 → Prevent debt from compounding unchecked
+
+[MANDATORY-26] PROACTIVE REFERENCE DOCUMENTATION READING
+→ ALWAYS read `docs/AGENT_REFERENCE.md` before selecting or using agents
+→ ALWAYS read `docs/SPARC_EXAMPLES.md` before executing SPARC workflows
+→ ALWAYS read `docs/MCP_SETUP_GUIDE.md` when MCP issues occur or setup needed
+→ Batch reference file reads with other operations in same message
+→ These files are NOT auto-loaded - you MUST explicitly read them
+→ Do not assume agent capabilities - verify by reading reference docs
+→ Consult examples before implementing complex workflows
+→ Reference documentation reading is MANDATORY, not optional
 
 ════════════════════════════════════════════════════════════
     END INSTRUCTIONS - COMPLIANCE REQUIRED
