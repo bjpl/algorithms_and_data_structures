@@ -13,7 +13,7 @@
 - [🎯 Project Configuration](#project-configuration)
 - [🚀 Available Agents & Tools](#available-agents--tools)
 - [📚 Technical Reference](#technical-reference)
-- [📖 External Documentation](#external-documentation)
+- [📖 Reference Documentation - Keyword Triggers](#reference-documentation---keyword-triggers--summaries)
 
 ---
 
@@ -632,20 +632,149 @@ Message 4: Write "file.js"
 
 ---
 
-## 📖 EXTERNAL DOCUMENTATION
+## 📖 REFERENCE DOCUMENTATION - KEYWORD TRIGGERS & SUMMARIES
 
-**The following files are for human reference only and are NOT auto-loaded by Claude Code:**
+**CRITICAL**: These files are NOT auto-loaded. When keywords match, you MUST read the full reference file.
 
-- **`docs/AGENT_REFERENCE.md`** - Detailed capabilities for all 54 agents
-- **`docs/SPARC_EXAMPLES.md`** - Extended workflow examples and tutorials
-- **`docs/MCP_SETUP_GUIDE.md`** - Step-by-step MCP configuration guide
-- **`docs/TROUBLESHOOTING.md`** - Common issues and solutions
+---
 
-**Existing Technical Documentation:**
-- **`.claude/agents/`** - Individual agent definition files (auto-read by Claude Code)
-- **`curriculum/`** - Learning modules and assessment system
-- **`docs/API_REFERENCE.md`** - Comprehensive API documentation
-- **`docs/DEVELOPER_GUIDE.md`** - Development setup and contribution guidelines
+### 🤖 AGENT REFERENCE - `docs/AGENT_REFERENCE.md`
+
+**KEYWORD TRIGGERS** (If ANY match, READ THE FILE):
+`agent`, `agents`, `which agent`, `what agent`, `agent capabilities`, `agent selection`, `spawn agent`, `use agent`, `task tool`, `coder`, `reviewer`, `tester`, `planner`, `researcher`, `backend-dev`, `mobile-dev`, `ml-developer`, `system-architect`, `coordinator`, `swarm`, `hierarchical`, `mesh`, `adaptive`, `raft`, `byzantine`, `consensus`, `crdt`, `gossip`, `quorum`, `github-modes`, `pr-manager`, `issue-tracker`, `release-manager`, `sparc-coord`, `sparc-coder`, `specification`, `pseudocode`, `architecture`, `refinement`, `tdd-london`, `production-validator`, `migration-planner`
+
+**SUMMARY**:
+- **54 agents total** organized in 9 categories
+- **Core**: coder, reviewer, tester, planner, researcher
+- **Swarm**: hierarchical-coordinator, mesh-coordinator, adaptive-coordinator
+- **Consensus**: raft-manager, byzantine-coordinator, gossip-coordinator, crdt-synchronizer
+- **GitHub**: pr-manager, code-review-swarm, issue-tracker, release-manager, workflow-automation
+- **SPARC**: sparc-coord, sparc-coder, specification, pseudocode, architecture, refinement
+- **Specialized**: backend-dev, mobile-dev, ml-developer, cicd-engineer, api-docs, system-architect
+
+**WHEN TO READ**:
+- Before spawning ANY agent via Task tool
+- When user asks "which agent should I use?"
+- When planning multi-agent workflows
+- When uncertain about agent capabilities
+- When selecting between similar agents
+
+**ACTION**: `Read "docs/AGENT_REFERENCE.md"` then select appropriate agent(s)
+
+---
+
+### 🔄 SPARC EXAMPLES - `docs/SPARC_EXAMPLES.md`
+
+**KEYWORD TRIGGERS** (If ANY match, READ THE FILE):
+`sparc`, `specification`, `pseudocode`, `architecture`, `refinement`, `completion`, `tdd`, `test-driven`, `workflow`, `pipeline`, `methodology`, `feature development`, `implementation plan`, `algorithm design`, `system design`, `build feature`, `create api`, `develop`, `full-stack`, `e-commerce`, `blog platform`, `chat system`, `ml pipeline`, `image classification`, `rapid prototype`, `concurrent phase`
+
+**SUMMARY**:
+- **SPARC Phases**: Specification → Pseudocode → Architecture → Refinement → Completion
+- **Examples included**:
+  - Simple feature: User profile picture upload
+  - Complex feature: Real-time chat system
+  - Full-stack: E-commerce product catalog
+  - API development: RESTful blog API
+  - ML pipeline: Image classification model
+- **Command patterns**: `sparc run`, `sparc tdd`, `sparc pipeline`, `sparc batch`
+- **Common patterns**: Rapid prototyping, architecture review, TDD focus, concurrent execution
+
+**WHEN TO READ**:
+- Before executing ANY SPARC command
+- When user requests TDD workflow
+- When planning complex feature development
+- When implementing multi-phase projects
+- When uncertain about SPARC phase execution
+- When user says "build a feature" or "create an API"
+
+**ACTION**: `Read "docs/SPARC_EXAMPLES.md"` then execute SPARC workflow
+
+---
+
+### ⚙️ MCP SETUP GUIDE - `docs/MCP_SETUP_GUIDE.md`
+
+**KEYWORD TRIGGERS** (If ANY match, READ THE FILE):
+`mcp`, `setup mcp`, `install mcp`, `configure mcp`, `mcp error`, `mcp not working`, `mcp tools`, `claude-flow`, `ruv-swarm`, `flow-nexus`, `swarm not working`, `agent spawn failed`, `coordination error`, `mcp server`, `authentication`, `sandbox`, `neural training`, `mcp list`, `mcp add`, `mcp remove`, `hooks`, `topology`, `consensus`, `npx claude-flow`, `mcp status`, `connection failed`
+
+**SUMMARY**:
+- **3 MCP servers**:
+  - **Claude Flow** (REQUIRED): SPARC, swarm coordination, hooks, memory
+  - **Ruv-Swarm** (Optional): Enhanced consensus, CRDT, fault tolerance
+  - **Flow-Nexus** (Optional): Cloud sandboxes, neural training, marketplace
+- **Setup commands**:
+  - `claude mcp add claude-flow npx claude-flow@alpha mcp start`
+  - `claude mcp add ruv-swarm npx ruv-swarm mcp start`
+  - `claude mcp add flow-nexus npx flow-nexus@latest mcp start`
+- **Troubleshooting**: Server not found, tools not appearing, authentication failing, slow responses
+
+**WHEN TO READ**:
+- When MCP tools are not available
+- When user asks about MCP setup
+- When swarm coordination fails
+- When authentication errors occur
+- When MCP server issues reported
+- When user mentions installing or configuring MCP
+
+**ACTION**: `Read "docs/MCP_SETUP_GUIDE.md"` then troubleshoot/configure MCP
+
+---
+
+### 📚 QUICK LOOKUP TABLE
+
+| **User Says...** | **Read This File** | **Then Do This** |
+|-----------------|-------------------|------------------|
+| "Which agent should I use?" | `docs/AGENT_REFERENCE.md` | Select appropriate agent |
+| "Build a feature using SPARC" | `docs/SPARC_EXAMPLES.md` | Execute SPARC workflow |
+| "MCP not working" | `docs/MCP_SETUP_GUIDE.md` | Troubleshoot MCP setup |
+| "Create an API" | `docs/SPARC_EXAMPLES.md` | Follow API development example |
+| "Use the backend developer agent" | `docs/AGENT_REFERENCE.md` | Verify backend-dev capabilities |
+| "Setup swarm coordination" | `docs/MCP_SETUP_GUIDE.md` | Configure MCP servers |
+| "Run TDD workflow" | `docs/SPARC_EXAMPLES.md` | Follow TDD examples |
+| "Consensus protocol error" | `docs/MCP_SETUP_GUIDE.md` | Check Ruv-Swarm setup |
+
+---
+
+### 🎯 READING ENFORCEMENT PATTERN
+
+```javascript
+// ✅ CORRECT: Keyword detected → Read reference → Execute
+User says: "Use the reviewer agent to check my code"
+
+[Single Message]:
+  Read "docs/AGENT_REFERENCE.md"  // Verify reviewer capabilities
+  Task("Code Reviewer", "Review code for best practices and security", "reviewer")
+```
+
+```javascript
+// ✅ CORRECT: SPARC keyword → Read examples → Execute
+User says: "Build a real-time chat feature using SPARC"
+
+[Single Message]:
+  Read "docs/SPARC_EXAMPLES.md"  // Get real-time chat example
+  // Then execute SPARC workflow based on examples
+```
+
+```javascript
+// ✅ CORRECT: MCP issue → Read guide → Troubleshoot
+User says: "MCP tools aren't showing up"
+
+[Single Message]:
+  Read "docs/MCP_SETUP_GUIDE.md"  // Get troubleshooting steps
+  Bash "claude mcp list"  // Verify MCP servers
+  // Then provide specific troubleshooting
+```
+
+---
+
+### 📁 OTHER TECHNICAL DOCUMENTATION
+
+**Auto-read by Claude Code** (in `.claude/agents/`):
+- Individual agent definition files with detailed instructions
+
+**Available for manual reference**:
+- `curriculum/` - Learning modules and assessment system
+- `docs/API_REFERENCE.md` - Comprehensive API documentation
+- `docs/DEVELOPER_GUIDE.md` - Development setup and contribution guidelines
 
 ---
 
