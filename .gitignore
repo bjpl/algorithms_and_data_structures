@@ -25,3 +25,23 @@ hive-mind-prompt-*.txt
 
 # Migration backups (temporary)
 .migration_backups/
+
+# Python cache and compiled files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Test coverage
+coverage_results.json
+coverage_summary.json
+.coverage
+htmlcov/
+*.cover
+.pytest_cache/
+
+# Virtual environments
+venv/
+env/
+ENV/
