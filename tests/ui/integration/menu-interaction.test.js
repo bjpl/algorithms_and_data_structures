@@ -67,4 +67,498 @@ describe('Menu Interaction Integration Tests', () => {
                 
                 switch (direction) {
                     case 'up':
-                        this.state.selectedIndex = (this.state.selectedIndex - 1 + itemCount) % itemCount;\n                        break;\n                    case 'down':\n                        this.state.selectedIndex = (this.state.selectedIndex + 1) % itemCount;\n                        break;\n                    case 'first':\n                        this.state.selectedIndex = 0;\n                        break;\n                    case 'last':\n                        this.state.selectedIndex = itemCount - 1;\n                        break;\n                }\n                \n                this.state.lastInteraction = { type: 'navigate', direction, timestamp: Date.now() };\n                interactionLog.push({ action: 'navigate', direction, newIndex: this.state.selectedIndex });\n            },\n            selectItem: function() {\n                const item = this.getCurrentItem();\n                if (!item) return false;\n                \n                interactionLog.push({ action: 'select', item: item.id, type: item.type || 'default' });\n                \n                switch (item.type) {\n                    case 'submenu':\n                        return this.openSubmenu(item.id);\n                    case 'toggle':\n                        return this.toggleItem(item.id);\n                    case 'select':\n                        return this.openSelectDialog(item.id);\n                    case 'action':\n                        return this.executeAction(item.id);\n                    default:\n                        return this.activateItem(item.id);\n                }\n            },\n            getCurrentItem: function() {\n                const visibleItems = this.getVisibleItems();\n                return visibleItems[this.state.selectedIndex] || null;\n            },\n            getVisibleItems: function() {\n                const currentMenu = this.menus[this.state.currentMenuId];\n                if (!currentMenu) return [];\n                \n                if (this.state.searchQuery) {\n                    return currentMenu.items.filter(item => \n                        item.label.toLowerCase().includes(this.state.searchQuery.toLowerCase()) ||\n                        (item.description && item.description.toLowerCase().includes(this.state.searchQuery.toLowerCase()))\n                    );\n                }\n                \n                return currentMenu.items;\n            },\n            search: function(query) {\n                this.state.searchQuery = query;\n                this.state.selectedIndex = 0; // Reset selection when searching\n                \n                interactionLog.push({ action: 'search', query, resultCount: this.getVisibleItems().length });\n            },\n            clearSearch: function() {\n                this.state.searchQuery = '';\n                this.state.selectedIndex = 0;\n                interactionLog.push({ action: 'clear-search' });\n            },\n            goBack: function() {\n                const currentMenu = this.menus[this.state.currentMenuId];\n                if (currentMenu && currentMenu.parent) {\n                    this.state.currentMenuId = currentMenu.parent;\n                    this.state.selectedIndex = 0;\n                    this.clearSearch();\n                    \n                    interactionLog.push({ action: 'go-back', to: currentMenu.parent });\n                    return true;\n                }\n                return false;\n            },\n            openSubmenu: function(menuId) {\n                if (this.menus[menuId]) {\n                    this.state.currentMenuId = menuId;\n                    this.state.selectedIndex = 0;\n                    this.clearSearch();\n                    \n                    interactionLog.push({ action: 'open-submenu', menuId });\n                    return true;\n                }\n                return false;\n            },\n            toggleItem: function(itemId) {\n                const currentMenu = this.menus[this.state.currentMenuId];\n                const item = currentMenu.items.find(i => i.id === itemId);\n                \n                if (item && item.type === 'toggle') {\n                    item.value = !item.value;\n                    interactionLog.push({ action: 'toggle', itemId, newValue: item.value });\n                    return true;\n                }\n                return false;\n            },\n            openSelectDialog: function(itemId) {\n                const currentMenu = this.menus[this.state.currentMenuId];\n                const item = currentMenu.items.find(i => i.id === itemId);\n                \n                if (item && item.type === 'select' && item.options) {\n                    interactionLog.push({ action: 'open-select', itemId, options: item.options });\n                    return true;\n                }\n                return false;\n            },\n            executeAction: function(itemId) {\n                const currentMenu = this.menus[this.state.currentMenuId];\n                const item = currentMenu.items.find(i => i.id === itemId);\n                \n                if (item && item.type === 'action') {\n                    if (item.confirm) {\n                        interactionLog.push({ action: 'request-confirmation', itemId });\n                    } else {\n                        interactionLog.push({ action: 'execute-action', itemId });\n                    }\n                    return true;\n                }\n                return false;\n            },\n            activateItem: function(itemId) {\n                interactionLog.push({ action: 'activate', itemId });\n                return true;\n            },\n            handleShortcut: function(shortcut) {\n                const currentMenu = this.menus[this.state.currentMenuId];\n                const item = currentMenu.items.find(i => i.shortcut === shortcut);\n                \n                if (item) {\n                    this.state.selectedIndex = currentMenu.items.indexOf(item);\n                    interactionLog.push({ action: 'shortcut', shortcut, itemId: item.id });\n                    return this.selectItem();\n                }\n                return false;\n            },\n            getCurrentMenu: function() {\n                return this.menus[this.state.currentMenuId];\n            },\n            getMenuPath: function() {\n                const path = [];\n                let currentMenuId = this.state.currentMenuId;\n                \n                while (currentMenuId) {\n                    const menu = this.menus[currentMenuId];\n                    path.unshift(menu.title);\n                    currentMenuId = menu.parent;\n                }\n                \n                return path;\n            }\n        };\n\n        keyHandler = {\n            handleKey: function(key, modifiers = {}) {\n                switch (key) {\n                    case 'ArrowUp':\n                        menuSystem.navigate('up');\n                        return true;\n                    case 'ArrowDown':\n                        menuSystem.navigate('down');\n                        return true;\n                    case 'Home':\n                        menuSystem.navigate('first');\n                        return true;\n                    case 'End':\n                        menuSystem.navigate('last');\n                        return true;\n                    case 'Enter':\n                        return menuSystem.selectItem();\n                    case 'Escape':\n                        if (menuSystem.state.searchQuery) {\n                            menuSystem.clearSearch();\n                            return true;\n                        }\n                        return menuSystem.goBack();\n                    case 'Backspace':\n                        if (modifiers.ctrl) {\n                            menuSystem.clearSearch();\n                            return true;\n                        }\n                        return menuSystem.goBack();\n                    default:\n                        // Handle number shortcuts\n                        if (/^[0-9]$/.test(key)) {\n                            return menuSystem.handleShortcut(key);\n                        }\n                        // Handle search input\n                        if (/^[a-zA-Z\\s]$/.test(key)) {\n                            menuSystem.search(menuSystem.state.searchQuery + key);\n                            return true;\n                        }\n                        return false;\n                }\n            }\n        };\n    });\n\n    describe('Basic Menu Navigation', () => {\n        test('should navigate up and down through menu items', () => {\n            menuSystem.navigate('down');\n            expect(menuSystem.state.selectedIndex).toBe(1);\n            \n            menuSystem.navigate('down');\n            expect(menuSystem.state.selectedIndex).toBe(2);\n            \n            menuSystem.navigate('up');\n            expect(menuSystem.state.selectedIndex).toBe(1);\n        });\n\n        test('should wrap around when navigating past boundaries', () => {\n            const itemCount = menuSystem.getVisibleItems().length;\n            \n            // Navigate to last item\n            menuSystem.navigate('last');\n            expect(menuSystem.state.selectedIndex).toBe(itemCount - 1);\n            \n            // Navigate down should wrap to first\n            menuSystem.navigate('down');\n            expect(menuSystem.state.selectedIndex).toBe(0);\n            \n            // Navigate up should wrap to last\n            menuSystem.navigate('up');\n            expect(menuSystem.state.selectedIndex).toBe(itemCount - 1);\n        });\n\n        test('should jump to first and last items', () => {\n            menuSystem.state.selectedIndex = 3;\n            \n            menuSystem.navigate('first');\n            expect(menuSystem.state.selectedIndex).toBe(0);\n            \n            menuSystem.navigate('last');\n            expect(menuSystem.state.selectedIndex).toBe(menuSystem.getVisibleItems().length - 1);\n        });\n    });\n\n    describe('Menu Item Selection', () => {\n        test('should select and activate regular menu items', () => {\n            menuSystem.state.selectedIndex = 0; // Arrays\n            const result = menuSystem.selectItem();\n            \n            expect(result).toBe(true);\n            expect(interactionLog.some(e => e.action === 'activate' && e.itemId === 'arrays')).toBe(true);\n        });\n\n        test('should open submenus when selecting submenu items', () => {\n            menuSystem.state.currentMenuId = 'main';\n            menuSystem.state.selectedIndex = 0; // Arrays\n            \n            // First activate arrays to create a submenu scenario\n            menuSystem.openSubmenu('arrays');\n            \n            expect(menuSystem.state.currentMenuId).toBe('arrays');\n            expect(interactionLog.some(e => e.action === 'open-submenu')).toBe(true);\n        });\n\n        test('should handle toggle items correctly', () => {\n            menuSystem.state.currentMenuId = 'settings';\n            menuSystem.state.selectedIndex = 2; // Notifications toggle\n            \n            const initialValue = menuSystem.getCurrentItem().value;\n            menuSystem.selectItem();\n            \n            expect(menuSystem.getCurrentItem().value).toBe(!initialValue);\n            expect(interactionLog.some(e => e.action === 'toggle')).toBe(true);\n        });\n\n        test('should handle action items with confirmation', () => {\n            menuSystem.state.currentMenuId = 'settings';\n            menuSystem.state.selectedIndex = 4; // Reset action\n            \n            menuSystem.selectItem();\n            \n            expect(interactionLog.some(e => e.action === 'request-confirmation')).toBe(true);\n        });\n    });\n\n    describe('Keyboard Input Handling', () => {\n        test('should handle arrow key navigation', () => {\n            keyHandler.handleKey('ArrowDown');\n            expect(menuSystem.state.selectedIndex).toBe(1);\n            \n            keyHandler.handleKey('ArrowUp');\n            expect(menuSystem.state.selectedIndex).toBe(0);\n        });\n\n        test('should handle Home and End keys', () => {\n            keyHandler.handleKey('End');\n            expect(menuSystem.state.selectedIndex).toBe(menuSystem.getVisibleItems().length - 1);\n            \n            keyHandler.handleKey('Home');\n            expect(menuSystem.state.selectedIndex).toBe(0);\n        });\n\n        test('should handle Enter key for selection', () => {\n            menuSystem.state.selectedIndex = 1;\n            const result = keyHandler.handleKey('Enter');\n            \n            expect(result).toBe(true);\n            expect(interactionLog.some(e => e.action === 'activate')).toBe(true);\n        });\n\n        test('should handle Escape key for going back', () => {\n            menuSystem.state.currentMenuId = 'arrays';\n            const result = keyHandler.handleKey('Escape');\n            \n            expect(result).toBe(true);\n            expect(menuSystem.state.currentMenuId).toBe('main');\n        });\n\n        test('should handle number shortcuts', () => {\n            const result = keyHandler.handleKey('2');\n            \n            expect(result).toBe(true);\n            expect(interactionLog.some(e => e.action === 'shortcut' && e.shortcut === '2')).toBe(true);\n        });\n    });\n\n    describe('Search Functionality', () => {\n        test('should filter items based on search query', () => {\n            menuSystem.search('array');\n            \n            const visibleItems = menuSystem.getVisibleItems();\n            expect(visibleItems.length).toBeLessThan(menuSystem.menus.main.items.length);\n            expect(visibleItems.every(item => \n                item.label.toLowerCase().includes('array') || \n                (item.description && item.description.toLowerCase().includes('array'))\n            )).toBe(true);\n        });\n\n        test('should reset selection when searching', () => {\n            menuSystem.state.selectedIndex = 3;\n            menuSystem.search('sorting');\n            \n            expect(menuSystem.state.selectedIndex).toBe(0);\n        });\n\n        test('should clear search and restore full menu', () => {\n            menuSystem.search('tree');\n            const filteredCount = menuSystem.getVisibleItems().length;\n            \n            menuSystem.clearSearch();\n            const fullCount = menuSystem.getVisibleItems().length;\n            \n            expect(fullCount).toBeGreaterThan(filteredCount);\n            expect(menuSystem.state.searchQuery).toBe('');\n        });\n\n        test('should handle search with no results', () => {\n            menuSystem.search('nonexistent');\n            \n            expect(menuSystem.getVisibleItems().length).toBe(0);\n        });\n\n        test('should handle character input for search', () => {\n            keyHandler.handleKey('s');\n            keyHandler.handleKey('o');\n            keyHandler.handleKey('r');\n            keyHandler.handleKey('t');\n            \n            expect(menuSystem.state.searchQuery).toBe('sort');\n            expect(interactionLog.filter(e => e.action === 'search')).toHaveLength(4);\n        });\n    });\n\n    describe('Menu State Management', () => {\n        test('should maintain menu hierarchy correctly', () => {\n            menuSystem.openSubmenu('arrays');\n            expect(menuSystem.state.currentMenuId).toBe('arrays');\n            \n            const path = menuSystem.getMenuPath();\n            expect(path).toEqual(['Main Menu', 'Arrays & Lists']);\n        });\n\n        test('should track interaction history', () => {\n            menuSystem.navigate('down');\n            menuSystem.selectItem();\n            menuSystem.navigate('up');\n            \n            expect(interactionLog.length).toBeGreaterThan(0);\n            expect(interactionLog.some(e => e.action === 'navigate')).toBe(true);\n            expect(interactionLog.some(e => e.action === 'activate')).toBe(true);\n        });\n\n        test('should handle invalid menu navigation gracefully', () => {\n            const result = menuSystem.openSubmenu('nonexistent');\n            expect(result).toBe(false);\n            expect(menuSystem.state.currentMenuId).toBe('main'); // Should remain unchanged\n        });\n\n        test('should handle back navigation from root menu', () => {\n            menuSystem.state.currentMenuId = 'main';\n            const result = menuSystem.goBack();\n            \n            expect(result).toBe(false);\n            expect(menuSystem.state.currentMenuId).toBe('main');\n        });\n    });\n\n    describe('Complex Menu Interactions', () => {\n        test('should handle rapid navigation correctly', () => {\n            const rapidActions = [\n                () => menuSystem.navigate('down'),\n                () => menuSystem.navigate('down'),\n                () => menuSystem.navigate('up'),\n                () => menuSystem.selectItem(),\n                () => menuSystem.navigate('down'),\n                () => menuSystem.goBack()\n            ];\n            \n            rapidActions.forEach(action => action());\n            \n            // Should maintain consistent state\n            expect(menuSystem.state.selectedIndex).toBeGreaterThanOrEqual(0);\n            expect(menuSystem.getCurrentMenu()).toBeDefined();\n        });\n\n        test('should handle search during navigation', () => {\n            menuSystem.navigate('down');\n            menuSystem.navigate('down');\n            menuSystem.search('dynamic');\n            \n            expect(menuSystem.state.selectedIndex).toBe(0); // Reset on search\n            expect(menuSystem.getVisibleItems().length).toBe(1); // Should find Dynamic Programming\n            \n            menuSystem.clearSearch();\n            expect(menuSystem.getVisibleItems().length).toBe(8); // Back to full menu\n        });\n\n        test('should handle menu switching with preserved state', () => {\n            // Navigate to arrays submenu\n            menuSystem.openSubmenu('arrays');\n            menuSystem.navigate('down');\n            menuSystem.navigate('down');\n            \n            const arrayIndex = menuSystem.state.selectedIndex;\n            \n            // Go back and enter settings\n            menuSystem.goBack();\n            menuSystem.openSubmenu('settings');\n            \n            // State should be reset in new menu\n            expect(menuSystem.state.selectedIndex).toBe(0);\n            expect(menuSystem.state.currentMenuId).toBe('settings');\n        });\n\n        test('should maintain search state within menu context', () => {\n            menuSystem.search('array');\n            const searchResults = menuSystem.getVisibleItems().length;\n            \n            // Navigate within search results\n            if (searchResults > 1) {\n                menuSystem.navigate('down');\n                expect(menuSystem.state.selectedIndex).toBe(1);\n                expect(menuSystem.state.searchQuery).toBe('array');\n            }\n        });\n    });\n\n    describe('Accessibility and User Experience', () => {\n        test('should provide meaningful interaction feedback', () => {\n            menuSystem.navigate('down');\n            menuSystem.selectItem();\n            \n            const lastNavigation = interactionLog.find(e => e.action === 'navigate');\n            const lastSelection = interactionLog.find(e => e.action === 'activate');\n            \n            expect(lastNavigation).toBeDefined();\n            expect(lastNavigation.newIndex).toBeDefined();\n            expect(lastSelection).toBeDefined();\n            expect(lastSelection.itemId).toBeDefined();\n        });\n\n        test('should track timing of interactions', () => {\n            menuSystem.navigate('down');\n            \n            expect(menuSystem.state.lastInteraction).toBeDefined();\n            expect(menuSystem.state.lastInteraction.type).toBe('navigate');\n            expect(menuSystem.state.lastInteraction.timestamp).toBeGreaterThan(0);\n        });\n\n        test('should provide context about current location', () => {\n            menuSystem.openSubmenu('arrays');\n            menuSystem.navigate('down');\n            \n            const currentItem = menuSystem.getCurrentItem();\n            const menuPath = menuSystem.getMenuPath();\n            \n            expect(currentItem).toBeDefined();\n            expect(currentItem.label).toBeDefined();\n            expect(menuPath).toContain('Arrays & Lists');\n        });\n    });\n});"
+                        this.state.selectedIndex = (this.state.selectedIndex - 1 + itemCount) % itemCount;
+                        break;
+                    case 'down':
+                        this.state.selectedIndex = (this.state.selectedIndex + 1) % itemCount;
+                        break;
+                    case 'first':
+                        this.state.selectedIndex = 0;
+                        break;
+                    case 'last':
+                        this.state.selectedIndex = itemCount - 1;
+                        break;
+                }
+                
+                this.state.lastInteraction = { type: 'navigate', direction, timestamp: Date.now() };
+                interactionLog.push({ action: 'navigate', direction, newIndex: this.state.selectedIndex });
+            },
+            selectItem: function() {
+                const item = this.getCurrentItem();
+                if (!item) return false;
+                
+                interactionLog.push({ action: 'select', item: item.id, type: item.type || 'default' });
+                
+                switch (item.type) {
+                    case 'submenu':
+                        return this.openSubmenu(item.id);
+                    case 'toggle':
+                        return this.toggleItem(item.id);
+                    case 'select':
+                        return this.openSelectDialog(item.id);
+                    case 'action':
+                        return this.executeAction(item.id);
+                    default:
+                        return this.activateItem(item.id);
+                }
+            },
+            getCurrentItem: function() {
+                const visibleItems = this.getVisibleItems();
+                return visibleItems[this.state.selectedIndex] || null;
+            },
+            getVisibleItems: function() {
+                const currentMenu = this.menus[this.state.currentMenuId];
+                if (!currentMenu) return [];
+                
+                if (this.state.searchQuery) {
+                    return currentMenu.items.filter(item => 
+                        item.label.toLowerCase().includes(this.state.searchQuery.toLowerCase()) ||
+                        (item.description && item.description.toLowerCase().includes(this.state.searchQuery.toLowerCase()))
+                    );
+                }
+                
+                return currentMenu.items;
+            },
+            search: function(query) {
+                this.state.searchQuery = query;
+                this.state.selectedIndex = 0; // Reset selection when searching
+                
+                interactionLog.push({ action: 'search', query, resultCount: this.getVisibleItems().length });
+            },
+            clearSearch: function() {
+                this.state.searchQuery = '';
+                this.state.selectedIndex = 0;
+                interactionLog.push({ action: 'clear-search' });
+            },
+            goBack: function() {
+                const currentMenu = this.menus[this.state.currentMenuId];
+                if (currentMenu && currentMenu.parent) {
+                    this.state.currentMenuId = currentMenu.parent;
+                    this.state.selectedIndex = 0;
+                    this.clearSearch();
+                    
+                    interactionLog.push({ action: 'go-back', to: currentMenu.parent });
+                    return true;
+                }
+                return false;
+            },
+            openSubmenu: function(menuId) {
+                if (this.menus[menuId]) {
+                    this.state.currentMenuId = menuId;
+                    this.state.selectedIndex = 0;
+                    this.clearSearch();
+                    
+                    interactionLog.push({ action: 'open-submenu', menuId });
+                    return true;
+                }
+                return false;
+            },
+            toggleItem: function(itemId) {
+                const currentMenu = this.menus[this.state.currentMenuId];
+                const item = currentMenu.items.find(i => i.id === itemId);
+                
+                if (item && item.type === 'toggle') {
+                    item.value = !item.value;
+                    interactionLog.push({ action: 'toggle', itemId, newValue: item.value });
+                    return true;
+                }
+                return false;
+            },
+            openSelectDialog: function(itemId) {
+                const currentMenu = this.menus[this.state.currentMenuId];
+                const item = currentMenu.items.find(i => i.id === itemId);
+                
+                if (item && item.type === 'select' && item.options) {
+                    interactionLog.push({ action: 'open-select', itemId, options: item.options });
+                    return true;
+                }
+                return false;
+            },
+            executeAction: function(itemId) {
+                const currentMenu = this.menus[this.state.currentMenuId];
+                const item = currentMenu.items.find(i => i.id === itemId);
+                
+                if (item && item.type === 'action') {
+                    if (item.confirm) {
+                        interactionLog.push({ action: 'request-confirmation', itemId });
+                    } else {
+                        interactionLog.push({ action: 'execute-action', itemId });
+                    }
+                    return true;
+                }
+                return false;
+            },
+            activateItem: function(itemId) {
+                interactionLog.push({ action: 'activate', itemId });
+                return true;
+            },
+            handleShortcut: function(shortcut) {
+                const currentMenu = this.menus[this.state.currentMenuId];
+                const item = currentMenu.items.find(i => i.shortcut === shortcut);
+                
+                if (item) {
+                    this.state.selectedIndex = currentMenu.items.indexOf(item);
+                    interactionLog.push({ action: 'shortcut', shortcut, itemId: item.id });
+                    return this.selectItem();
+                }
+                return false;
+            },
+            getCurrentMenu: function() {
+                return this.menus[this.state.currentMenuId];
+            },
+            getMenuPath: function() {
+                const path = [];
+                let currentMenuId = this.state.currentMenuId;
+                
+                while (currentMenuId) {
+                    const menu = this.menus[currentMenuId];
+                    path.unshift(menu.title);
+                    currentMenuId = menu.parent;
+                }
+                
+                return path;
+            }
+        };
+
+        keyHandler = {
+            handleKey: function(key, modifiers = {}) {
+                switch (key) {
+                    case 'ArrowUp':
+                        menuSystem.navigate('up');
+                        return true;
+                    case 'ArrowDown':
+                        menuSystem.navigate('down');
+                        return true;
+                    case 'Home':
+                        menuSystem.navigate('first');
+                        return true;
+                    case 'End':
+                        menuSystem.navigate('last');
+                        return true;
+                    case 'Enter':
+                        return menuSystem.selectItem();
+                    case 'Escape':
+                        if (menuSystem.state.searchQuery) {
+                            menuSystem.clearSearch();
+                            return true;
+                        }
+                        return menuSystem.goBack();
+                    case 'Backspace':
+                        if (modifiers.ctrl) {
+                            menuSystem.clearSearch();
+                            return true;
+                        }
+                        return menuSystem.goBack();
+                    default:
+                        // Handle number shortcuts
+                        if (/^[0-9]$/.test(key)) {
+                            return menuSystem.handleShortcut(key);
+                        }
+                        // Handle search input
+                        if (/^[a-zA-Z\\s]$/.test(key)) {
+                            menuSystem.search(menuSystem.state.searchQuery + key);
+                            return true;
+                        }
+                        return false;
+                }
+            }
+        };
+    });
+
+    describe('Basic Menu Navigation', () => {
+        test('should navigate up and down through menu items', () => {
+            menuSystem.navigate('down');
+            expect(menuSystem.state.selectedIndex).toBe(1);
+            
+            menuSystem.navigate('down');
+            expect(menuSystem.state.selectedIndex).toBe(2);
+            
+            menuSystem.navigate('up');
+            expect(menuSystem.state.selectedIndex).toBe(1);
+        });
+
+        test('should wrap around when navigating past boundaries', () => {
+            const itemCount = menuSystem.getVisibleItems().length;
+            
+            // Navigate to last item
+            menuSystem.navigate('last');
+            expect(menuSystem.state.selectedIndex).toBe(itemCount - 1);
+            
+            // Navigate down should wrap to first
+            menuSystem.navigate('down');
+            expect(menuSystem.state.selectedIndex).toBe(0);
+            
+            // Navigate up should wrap to last
+            menuSystem.navigate('up');
+            expect(menuSystem.state.selectedIndex).toBe(itemCount - 1);
+        });
+
+        test('should jump to first and last items', () => {
+            menuSystem.state.selectedIndex = 3;
+            
+            menuSystem.navigate('first');
+            expect(menuSystem.state.selectedIndex).toBe(0);
+            
+            menuSystem.navigate('last');
+            expect(menuSystem.state.selectedIndex).toBe(menuSystem.getVisibleItems().length - 1);
+        });
+    });
+
+    describe('Menu Item Selection', () => {
+        test('should select and activate regular menu items', () => {
+            menuSystem.state.selectedIndex = 0; // Arrays
+            const result = menuSystem.selectItem();
+            
+            expect(result).toBe(true);
+            expect(interactionLog.some(e => e.action === 'activate' && e.itemId === 'arrays')).toBe(true);
+        });
+
+        test('should open submenus when selecting submenu items', () => {
+            menuSystem.state.currentMenuId = 'main';
+            menuSystem.state.selectedIndex = 0; // Arrays
+            
+            // First activate arrays to create a submenu scenario
+            menuSystem.openSubmenu('arrays');
+            
+            expect(menuSystem.state.currentMenuId).toBe('arrays');
+            expect(interactionLog.some(e => e.action === 'open-submenu')).toBe(true);
+        });
+
+        test('should handle toggle items correctly', () => {
+            menuSystem.state.currentMenuId = 'settings';
+            menuSystem.state.selectedIndex = 2; // Notifications toggle
+            
+            const initialValue = menuSystem.getCurrentItem().value;
+            menuSystem.selectItem();
+            
+            expect(menuSystem.getCurrentItem().value).toBe(!initialValue);
+            expect(interactionLog.some(e => e.action === 'toggle')).toBe(true);
+        });
+
+        test('should handle action items with confirmation', () => {
+            menuSystem.state.currentMenuId = 'settings';
+            menuSystem.state.selectedIndex = 4; // Reset action
+            
+            menuSystem.selectItem();
+            
+            expect(interactionLog.some(e => e.action === 'request-confirmation')).toBe(true);
+        });
+    });
+
+    describe('Keyboard Input Handling', () => {
+        test('should handle arrow key navigation', () => {
+            keyHandler.handleKey('ArrowDown');
+            expect(menuSystem.state.selectedIndex).toBe(1);
+            
+            keyHandler.handleKey('ArrowUp');
+            expect(menuSystem.state.selectedIndex).toBe(0);
+        });
+
+        test('should handle Home and End keys', () => {
+            keyHandler.handleKey('End');
+            expect(menuSystem.state.selectedIndex).toBe(menuSystem.getVisibleItems().length - 1);
+            
+            keyHandler.handleKey('Home');
+            expect(menuSystem.state.selectedIndex).toBe(0);
+        });
+
+        test('should handle Enter key for selection', () => {
+            menuSystem.state.selectedIndex = 1;
+            const result = keyHandler.handleKey('Enter');
+            
+            expect(result).toBe(true);
+            expect(interactionLog.some(e => e.action === 'activate')).toBe(true);
+        });
+
+        test('should handle Escape key for going back', () => {
+            menuSystem.state.currentMenuId = 'arrays';
+            const result = keyHandler.handleKey('Escape');
+            
+            expect(result).toBe(true);
+            expect(menuSystem.state.currentMenuId).toBe('main');
+        });
+
+        test('should handle number shortcuts', () => {
+            const result = keyHandler.handleKey('2');
+            
+            expect(result).toBe(true);
+            expect(interactionLog.some(e => e.action === 'shortcut' && e.shortcut === '2')).toBe(true);
+        });
+    });
+
+    describe('Search Functionality', () => {
+        test('should filter items based on search query', () => {
+            menuSystem.search('array');
+            
+            const visibleItems = menuSystem.getVisibleItems();
+            expect(visibleItems.length).toBeLessThan(menuSystem.menus.main.items.length);
+            expect(visibleItems.every(item => 
+                item.label.toLowerCase().includes('array') || 
+                (item.description && item.description.toLowerCase().includes('array'))
+            )).toBe(true);
+        });
+
+        test('should reset selection when searching', () => {
+            menuSystem.state.selectedIndex = 3;
+            menuSystem.search('sorting');
+            
+            expect(menuSystem.state.selectedIndex).toBe(0);
+        });
+
+        test('should clear search and restore full menu', () => {
+            menuSystem.search('tree');
+            const filteredCount = menuSystem.getVisibleItems().length;
+            
+            menuSystem.clearSearch();
+            const fullCount = menuSystem.getVisibleItems().length;
+            
+            expect(fullCount).toBeGreaterThan(filteredCount);
+            expect(menuSystem.state.searchQuery).toBe('');
+        });
+
+        test('should handle search with no results', () => {
+            menuSystem.search('nonexistent');
+            
+            expect(menuSystem.getVisibleItems().length).toBe(0);
+        });
+
+        test('should handle character input for search', () => {
+            keyHandler.handleKey('s');
+            keyHandler.handleKey('o');
+            keyHandler.handleKey('r');
+            keyHandler.handleKey('t');
+            
+            expect(menuSystem.state.searchQuery).toBe('sort');
+            expect(interactionLog.filter(e => e.action === 'search')).toHaveLength(4);
+        });
+    });
+
+    describe('Menu State Management', () => {
+        test('should maintain menu hierarchy correctly', () => {
+            menuSystem.openSubmenu('arrays');
+            expect(menuSystem.state.currentMenuId).toBe('arrays');
+            
+            const path = menuSystem.getMenuPath();
+            expect(path).toEqual(['Main Menu', 'Arrays & Lists']);
+        });
+
+        test('should track interaction history', () => {
+            menuSystem.navigate('down');
+            menuSystem.selectItem();
+            menuSystem.navigate('up');
+            
+            expect(interactionLog.length).toBeGreaterThan(0);
+            expect(interactionLog.some(e => e.action === 'navigate')).toBe(true);
+            expect(interactionLog.some(e => e.action === 'activate')).toBe(true);
+        });
+
+        test('should handle invalid menu navigation gracefully', () => {
+            const result = menuSystem.openSubmenu('nonexistent');
+            expect(result).toBe(false);
+            expect(menuSystem.state.currentMenuId).toBe('main'); // Should remain unchanged
+        });
+
+        test('should handle back navigation from root menu', () => {
+            menuSystem.state.currentMenuId = 'main';
+            const result = menuSystem.goBack();
+            
+            expect(result).toBe(false);
+            expect(menuSystem.state.currentMenuId).toBe('main');
+        });
+    });
+
+    describe('Complex Menu Interactions', () => {
+        test('should handle rapid navigation correctly', () => {
+            const rapidActions = [
+                () => menuSystem.navigate('down'),
+                () => menuSystem.navigate('down'),
+                () => menuSystem.navigate('up'),
+                () => menuSystem.selectItem(),
+                () => menuSystem.navigate('down'),
+                () => menuSystem.goBack()
+            ];
+            
+            rapidActions.forEach(action => action());
+            
+            // Should maintain consistent state
+            expect(menuSystem.state.selectedIndex).toBeGreaterThanOrEqual(0);
+            expect(menuSystem.getCurrentMenu()).toBeDefined();
+        });
+
+        test('should handle search during navigation', () => {
+            menuSystem.navigate('down');
+            menuSystem.navigate('down');
+            menuSystem.search('dynamic');
+            
+            expect(menuSystem.state.selectedIndex).toBe(0); // Reset on search
+            expect(menuSystem.getVisibleItems().length).toBe(1); // Should find Dynamic Programming
+            
+            menuSystem.clearSearch();
+            expect(menuSystem.getVisibleItems().length).toBe(8); // Back to full menu
+        });
+
+        test('should handle menu switching with preserved state', () => {
+            // Navigate to arrays submenu
+            menuSystem.openSubmenu('arrays');
+            menuSystem.navigate('down');
+            menuSystem.navigate('down');
+            
+            const arrayIndex = menuSystem.state.selectedIndex;
+            
+            // Go back and enter settings
+            menuSystem.goBack();
+            menuSystem.openSubmenu('settings');
+            
+            // State should be reset in new menu
+            expect(menuSystem.state.selectedIndex).toBe(0);
+            expect(menuSystem.state.currentMenuId).toBe('settings');
+        });
+
+        test('should maintain search state within menu context', () => {
+            menuSystem.search('array');
+            const searchResults = menuSystem.getVisibleItems().length;
+            
+            // Navigate within search results
+            if (searchResults > 1) {
+                menuSystem.navigate('down');
+                expect(menuSystem.state.selectedIndex).toBe(1);
+                expect(menuSystem.state.searchQuery).toBe('array');
+            }
+        });
+    });
+
+    describe('Accessibility and User Experience', () => {
+        test('should provide meaningful interaction feedback', () => {
+            menuSystem.navigate('down');
+            menuSystem.selectItem();
+            
+            const lastNavigation = interactionLog.find(e => e.action === 'navigate');
+            const lastSelection = interactionLog.find(e => e.action === 'activate');
+            
+            expect(lastNavigation).toBeDefined();
+            expect(lastNavigation.newIndex).toBeDefined();
+            expect(lastSelection).toBeDefined();
+            expect(lastSelection.itemId).toBeDefined();
+        });
+
+        test('should track timing of interactions', () => {
+            menuSystem.navigate('down');
+            
+            expect(menuSystem.state.lastInteraction).toBeDefined();
+            expect(menuSystem.state.lastInteraction.type).toBe('navigate');
+            expect(menuSystem.state.lastInteraction.timestamp).toBeGreaterThan(0);
+        });
+
+        test('should provide context about current location', () => {
+            menuSystem.openSubmenu('arrays');
+            menuSystem.navigate('down');
+            
+            const currentItem = menuSystem.getCurrentItem();
+            const menuPath = menuSystem.getMenuPath();
+            
+            expect(currentItem).toBeDefined();
+            expect(currentItem.label).toBeDefined();
+            expect(menuPath).toContain('Arrays & Lists');
+        });
+    });
+});"

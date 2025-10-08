@@ -1,1 +1,651 @@
-/**\n * Memory Usage Performance Test Suite\n * Tests for memory consumption and leak detection in UI components\n */\n\nimport { describe, test, expect, beforeEach, afterEach, jest } from '@jest/globals';\n\ndescribe('Memory Usage Tests', () => {\n    let memoryMonitor;\n    let uiSystem;\n    let memorySnapshots;\n\n    beforeEach(() => {\n        memorySnapshots = [];\n        \n        // Mock memory monitoring (in real environment would use process.memoryUsage())\n        memoryMonitor = {\n            baseline: {\n                heapUsed: 50 * 1024 * 1024, // 50MB baseline\n                heapTotal: 100 * 1024 * 1024, // 100MB total\n                external: 5 * 1024 * 1024, // 5MB external\n                rss: 80 * 1024 * 1024 // 80MB RSS\n            },\n            currentUsage: null,\n            \n            getMemoryUsage: function() {\n                // Simulate memory usage fluctuation\n                const fluctuation = (Math.random() - 0.5) * 0.1; // ±10% fluctuation\n                const growth = (uiSystem.components.size * 1024 * 100); // 100KB per component\n                \n                return {\n                    heapUsed: Math.floor(this.baseline.heapUsed * (1 + fluctuation) + growth),\n                    heapTotal: Math.floor(this.baseline.heapTotal * (1 + fluctuation) + growth * 1.5),\n                    external: Math.floor(this.baseline.external * (1 + fluctuation)),\n                    rss: Math.floor(this.baseline.rss * (1 + fluctuation) + growth * 1.2),\n                    timestamp: Date.now()\n                };\n            },\n            \n            takeSnapshot: function(label) {\n                const usage = this.getMemoryUsage();\n                const snapshot = {\n                    label,\n                    usage,\n                    timestamp: Date.now()\n                };\n                \n                memorySnapshots.push(snapshot);\n                return snapshot;\n            },\n            \n            compareSnapshots: function(before, after) {\n                return {\n                    heapUsedDelta: after.usage.heapUsed - before.usage.heapUsed,\n                    heapTotalDelta: after.usage.heapTotal - before.usage.heapTotal,\n                    externalDelta: after.usage.external - before.usage.external,\n                    rssDelta: after.usage.rss - before.usage.rss,\n                    timeDelta: after.timestamp - before.timestamp,\n                    \n                    getMemoryGrowthRate: function() {\n                        const timeSeconds = this.timeDelta / 1000;\n                        return {\n                            heapPerSecond: this.heapUsedDelta / timeSeconds,\n                            rssPerSecond: this.rssDelta / timeSeconds\n                        };\n                    }\n                };\n            },\n            \n            detectMemoryLeak: function(snapshots, thresholdMB = 10) {\n                if (snapshots.length < 3) return null;\n                \n                const recent = snapshots.slice(-5); // Last 5 snapshots\n                const growthRates = [];\n                \n                for (let i = 1; i < recent.length; i++) {\n                    const comparison = this.compareSnapshots(recent[i-1], recent[i]);\n                    const growthRate = comparison.getMemoryGrowthRate();\n                    growthRates.push(growthRate.heapPerSecond);\n                }\n                \n                const avgGrowthRate = growthRates.reduce((a, b) => a + b, 0) / growthRates.length;\n                const thresholdBytesPerSecond = thresholdMB * 1024 * 1024;\n                \n                return {\n                    isLeaking: avgGrowthRate > thresholdBytesPerSecond,\n                    avgGrowthRate,\n                    thresholdBytesPerSecond,\n                    confidence: Math.min(1, growthRates.length / 5) // More snapshots = higher confidence\n                };\n            },\n            \n            formatBytes: function(bytes) {\n                const sizes = ['Bytes', 'KB', 'MB', 'GB'];\n                if (bytes === 0) return '0 Byte';\n                const i = parseInt(Math.floor(Math.log(bytes) / Math.log(1024)));\n                return Math.round(bytes / Math.pow(1024, i) * 100) / 100 + ' ' + sizes[i];\n            },\n            \n            getMemoryReport: function() {\n                const current = this.getMemoryUsage();\n                const baseline = this.baseline;\n                \n                return {\n                    current: {\n                        heapUsed: this.formatBytes(current.heapUsed),\n                        heapTotal: this.formatBytes(current.heapTotal),\n                        external: this.formatBytes(current.external),\n                        rss: this.formatBytes(current.rss)\n                    },\n                    growth: {\n                        heapUsed: this.formatBytes(current.heapUsed - baseline.heapUsed),\n                        heapTotal: this.formatBytes(current.heapTotal - baseline.heapTotal),\n                        external: this.formatBytes(current.external - baseline.external),\n                        rss: this.formatBytes(current.rss - baseline.rss)\n                    },\n                    utilization: {\n                        heapUsedPercent: Math.round((current.heapUsed / current.heapTotal) * 100),\n                        heapGrowthPercent: Math.round(((current.heapUsed - baseline.heapUsed) / baseline.heapUsed) * 100)\n                    }\n                };\n            }\n        };\n        \n        uiSystem = {\n            components: new Map(),\n            eventListeners: new Set(),\n            timers: new Set(),\n            dataCache: new Map(),\n            renderHistory: [],\n            \n            createComponent: function(id, type, data = {}) {\n                const component = {\n                    id,\n                    type,\n                    data: { ...data },\n                    domElements: this.createMockDomElements(type),\n                    eventListeners: new Set(),\n                    createdAt: Date.now(),\n                    memoryFootprint: this.calculateMemoryFootprint(type, data)\n                };\n                \n                this.components.set(id, component);\n                this.attachEventListeners(component);\n                \n                return component;\n            },\n            \n            destroyComponent: function(id) {\n                const component = this.components.get(id);\n                if (!component) return false;\n                \n                // Clean up event listeners\n                component.eventListeners.forEach(listener => {\n                    this.eventListeners.delete(listener);\n                });\n                \n                // Clean up DOM elements\n                component.domElements = null;\n                \n                this.components.delete(id);\n                return true;\n            },\n            \n            createMockDomElements: function(type) {\n                // Simulate DOM elements based on component type\n                const elementCounts = {\n                    'menu': 10,\n                    'table': 50,\n                    'form': 20,\n                    'chart': 100,\n                    'text': 1\n                };\n                \n                const count = elementCounts[type] || 5;\n                return Array.from({ length: count }, (_, i) => ({\n                    id: `elem_${type}_${i}`,\n                    innerHTML: `<div>Mock ${type} element ${i}</div>`,\n                    attributes: { class: `${type}-element`, 'data-id': i },\n                    children: []\n                }));\n            },\n            \n            attachEventListeners: function(component) {\n                // Simulate event listener attachment\n                const events = ['click', 'focus', 'blur', 'keydown'];\n                events.forEach(event => {\n                    const listener = {\n                        componentId: component.id,\n                        event,\n                        handler: () => {}, // Mock handler\n                        createdAt: Date.now()\n                    };\n                    \n                    component.eventListeners.add(listener);\n                    this.eventListeners.add(listener);\n                });\n            },\n            \n            calculateMemoryFootprint: function(type, data) {\n                const baseFootprints = {\n                    'menu': 5 * 1024, // 5KB\n                    'table': 20 * 1024, // 20KB\n                    'form': 15 * 1024, // 15KB\n                    'chart': 50 * 1024, // 50KB\n                    'text': 1 * 1024 // 1KB\n                };\n                \n                const baseFootprint = baseFootprints[type] || 10 * 1024;\n                const dataSize = JSON.stringify(data).length;\n                \n                return baseFootprint + dataSize;\n            },\n            \n            addToCache: function(key, value) {\n                this.dataCache.set(key, {\n                    value,\n                    timestamp: Date.now(),\n                    accessCount: 0,\n                    size: JSON.stringify(value).length\n                });\n            },\n            \n            getFromCache: function(key) {\n                const cached = this.dataCache.get(key);\n                if (cached) {\n                    cached.accessCount++;\n                    return cached.value;\n                }\n                return null;\n            },\n            \n            clearCache: function() {\n                this.dataCache.clear();\n            },\n            \n            scheduleCleanup: function() {\n                const timerId = setTimeout(() => {\n                    this.performCleanup();\n                    this.timers.delete(timerId);\n                }, 1000);\n                \n                this.timers.add(timerId);\n            },\n            \n            performCleanup: function() {\n                // Clean up old cache entries\n                const now = Date.now();\n                const maxAge = 5 * 60 * 1000; // 5 minutes\n                \n                for (const [key, cached] of this.dataCache.entries()) {\n                    if (now - cached.timestamp > maxAge && cached.accessCount === 0) {\n                        this.dataCache.delete(key);\n                    }\n                }\n                \n                // Clean up old render history\n                if (this.renderHistory.length > 100) {\n                    this.renderHistory = this.renderHistory.slice(-50);\n                }\n            },\n            \n            getTotalMemoryFootprint: function() {\n                let total = 0;\n                \n                // Component memory\n                this.components.forEach(component => {\n                    total += component.memoryFootprint;\n                });\n                \n                // Cache memory\n                this.dataCache.forEach(cached => {\n                    total += cached.size;\n                });\n                \n                // Event listeners (estimate)\n                total += this.eventListeners.size * 1024; // 1KB per listener estimate\n                \n                return total;\n            },\n            \n            getMemoryStats: function() {\n                const componentMemory = Array.from(this.components.values())\n                    .reduce((total, comp) => total + comp.memoryFootprint, 0);\n                \n                const cacheMemory = Array.from(this.dataCache.values())\n                    .reduce((total, cached) => total + cached.size, 0);\n                \n                return {\n                    totalComponents: this.components.size,\n                    componentMemory: memoryMonitor.formatBytes(componentMemory),\n                    totalCacheEntries: this.dataCache.size,\n                    cacheMemory: memoryMonitor.formatBytes(cacheMemory),\n                    totalEventListeners: this.eventListeners.size,\n                    estimatedTotal: memoryMonitor.formatBytes(this.getTotalMemoryFootprint())\n                };\n            },\n            \n            reset: function() {\n                // Clear all components\n                this.components.forEach((_, id) => this.destroyComponent(id));\n                \n                // Clear cache\n                this.clearCache();\n                \n                // Clear timers\n                this.timers.forEach(timer => clearTimeout(timer));\n                this.timers.clear();\n                \n                // Clear history\n                this.renderHistory = [];\n            }\n        };\n    });\n    \n    describe('Memory Usage Monitoring', () => {\n        test('should track baseline memory usage', () => {\n            const baseline = memoryMonitor.takeSnapshot('baseline');\n            \n            expect(baseline.label).toBe('baseline');\n            expect(baseline.usage.heapUsed).toBeGreaterThan(0);\n            expect(baseline.usage.heapTotal).toBeGreaterThan(baseline.usage.heapUsed);\n            expect(baseline.usage.rss).toBeGreaterThan(0);\n        });\n\n        test('should detect memory growth with component creation', () => {\n            const before = memoryMonitor.takeSnapshot('before-components');\n            \n            // Create multiple components\n            for (let i = 0; i < 10; i++) {\n                uiSystem.createComponent(`comp-${i}`, 'table', {\n                    rows: Array.from({ length: 20 }, (_, j) => ({ id: j, name: `Row ${j}` }))\n                });\n            }\n            \n            const after = memoryMonitor.takeSnapshot('after-components');\n            const comparison = memoryMonitor.compareSnapshots(before, after);\n            \n            expect(comparison.heapUsedDelta).toBeGreaterThan(0);\n            expect(comparison.rssDelta).toBeGreaterThan(0);\n            expect(uiSystem.components.size).toBe(10);\n        });\n\n        test('should show memory reduction after cleanup', () => {\n            // Create components\n            for (let i = 0; i < 20; i++) {\n                uiSystem.createComponent(`temp-comp-${i}`, 'chart', {\n                    dataPoints: Array.from({ length: 100 }, () => Math.random())\n                });\n            }\n            \n            const beforeCleanup = memoryMonitor.takeSnapshot('before-cleanup');\n            \n            // Destroy half of the components\n            for (let i = 0; i < 10; i++) {\n                uiSystem.destroyComponent(`temp-comp-${i}`);\n            }\n            \n            const afterCleanup = memoryMonitor.takeSnapshot('after-cleanup');\n            const comparison = memoryMonitor.compareSnapshots(beforeCleanup, afterCleanup);\n            \n            expect(comparison.heapUsedDelta).toBeLessThan(0); // Memory should decrease\n            expect(uiSystem.components.size).toBe(10);\n        });\n    });\n    \n    describe('Memory Leak Detection', () => {\n        test('should detect potential memory leaks', () => {\n            // Simulate gradual memory growth\n            for (let i = 0; i < 10; i++) {\n                memoryMonitor.takeSnapshot(`leak-test-${i}`);\n                \n                // Create components without cleaning up\n                uiSystem.createComponent(`leak-comp-${i}`, 'table', {\n                    data: Array.from({ length: 50 }, (_, j) => ({ id: j, value: Math.random() }))\n                });\n            }\n            \n            const leakDetection = memoryMonitor.detectMemoryLeak(memorySnapshots);\n            \n            expect(leakDetection).not.toBeNull();\n            expect(leakDetection.avgGrowthRate).toBeGreaterThan(0);\n        });\n\n        test('should not flag normal memory usage as leak', () => {\n            // Create and destroy components (normal usage)\n            for (let i = 0; i < 8; i++) {\n                memoryMonitor.takeSnapshot(`normal-usage-${i}`);\n                \n                // Create component\n                uiSystem.createComponent(`normal-comp-${i}`, 'menu', { items: 5 });\n                \n                // Clean up previous component\n                if (i > 0) {\n                    uiSystem.destroyComponent(`normal-comp-${i-1}`);\n                }\n            }\n            \n            const leakDetection = memoryMonitor.detectMemoryLeak(memorySnapshots, 5); // 5MB threshold\n            \n            expect(leakDetection.isLeaking).toBe(false);\n        });\n\n        test('should track event listener cleanup', () => {\n            const initialListeners = uiSystem.eventListeners.size;\n            \n            // Create components with event listeners\n            for (let i = 0; i < 5; i++) {\n                uiSystem.createComponent(`listener-comp-${i}`, 'form');\n            }\n            \n            expect(uiSystem.eventListeners.size).toBeGreaterThan(initialListeners);\n            \n            // Destroy components\n            for (let i = 0; i < 5; i++) {\n                uiSystem.destroyComponent(`listener-comp-${i}`);\n            }\n            \n            // Event listeners should be cleaned up\n            expect(uiSystem.eventListeners.size).toBe(initialListeners);\n        });\n    });\n    \n    describe('Cache Memory Management', () => {\n        test('should track cache memory usage', () => {\n            const beforeCache = memoryMonitor.takeSnapshot('before-cache');\n            \n            // Add items to cache\n            for (let i = 0; i < 50; i++) {\n                const largeData = Array.from({ length: 100 }, (_, j) => ({\n                    id: j,\n                    name: `Item ${j}`,\n                    data: `Large data string ${j}`.repeat(10)\n                }));\n                \n                uiSystem.addToCache(`cache-key-${i}`, largeData);\n            }\n            \n            const afterCache = memoryMonitor.takeSnapshot('after-cache');\n            const comparison = memoryMonitor.compareSnapshots(beforeCache, afterCache);\n            \n            expect(comparison.heapUsedDelta).toBeGreaterThan(0);\n            expect(uiSystem.dataCache.size).toBe(50);\n        });\n\n        test('should perform automatic cache cleanup', () => {\n            // Add cache entries\n            for (let i = 0; i < 20; i++) {\n                uiSystem.addToCache(`temp-key-${i}`, { data: `temp data ${i}` });\n            }\n            \n            expect(uiSystem.dataCache.size).toBe(20);\n            \n            // Manually trigger cleanup (simulating time passage)\n            uiSystem.performCleanup();\n            \n            // Some entries might be cleaned up based on access patterns\n            expect(uiSystem.dataCache.size).toBeLessThanOrEqual(20);\n        });\n\n        test('should manage render history memory', () => {\n            // Fill render history beyond limit\n            for (let i = 0; i < 150; i++) {\n                uiSystem.renderHistory.push({\n                    id: i,\n                    type: 'render',\n                    timestamp: Date.now(),\n                    data: `render data ${i}`\n                });\n            }\n            \n            expect(uiSystem.renderHistory.length).toBe(150);\n            \n            // Trigger cleanup\n            uiSystem.performCleanup();\n            \n            // History should be trimmed\n            expect(uiSystem.renderHistory.length).toBeLessThan(150);\n            expect(uiSystem.renderHistory.length).toBeGreaterThan(0);\n        });\n    });\n    \n    describe('Memory Usage Reporting', () => {\n        test('should provide comprehensive memory report', () => {\n            // Create some components and cache data\n            uiSystem.createComponent('comp1', 'table', { rows: 50 });\n            uiSystem.createComponent('comp2', 'chart', { dataPoints: 200 });\n            uiSystem.addToCache('data1', { largeArray: Array(1000).fill('data') });\n            \n            const memoryReport = memoryMonitor.getMemoryReport();\n            \n            expect(memoryReport.current).toBeDefined();\n            expect(memoryReport.growth).toBeDefined();\n            expect(memoryReport.utilization).toBeDefined();\n            expect(memoryReport.utilization.heapUsedPercent).toBeGreaterThan(0);\n            expect(memoryReport.utilization.heapUsedPercent).toBeLessThanOrEqual(100);\n        });\n\n        test('should provide detailed component memory stats', () => {\n            // Create various types of components\n            uiSystem.createComponent('menu1', 'menu', { items: 10 });\n            uiSystem.createComponent('table1', 'table', { rows: 100, columns: 5 });\n            uiSystem.createComponent('form1', 'form', { fields: 20 });\n            \n            const stats = uiSystem.getMemoryStats();\n            \n            expect(stats.totalComponents).toBe(3);\n            expect(stats.componentMemory).toBeDefined();\n            expect(stats.totalEventListeners).toBeGreaterThan(0);\n            expect(stats.estimatedTotal).toBeDefined();\n        });\n\n        test('should format memory sizes correctly', () => {\n            const testCases = [\n                { bytes: 1024, expected: '1 KB' },\n                { bytes: 1048576, expected: '1 MB' },\n                { bytes: 1073741824, expected: '1 GB' },\n                { bytes: 500, expected: '500 Bytes' }\n            ];\n            \n            testCases.forEach(({ bytes, expected }) => {\n                const formatted = memoryMonitor.formatBytes(bytes);\n                expect(formatted).toBe(expected);\n            });\n        });\n    });\n    \n    describe('Memory Performance Under Load', () => {\n        test('should maintain reasonable memory usage under heavy load', () => {\n            const beforeLoad = memoryMonitor.takeSnapshot('before-heavy-load');\n            \n            // Simulate heavy component creation and destruction\n            for (let cycle = 0; cycle < 10; cycle++) {\n                // Create batch of components\n                for (let i = 0; i < 20; i++) {\n                    const id = `load-comp-${cycle}-${i}`;\n                    uiSystem.createComponent(id, 'table', {\n                        data: Array.from({ length: 50 }, (_, j) => ({\n                            id: j,\n                            value: Math.random(),\n                            text: `Data ${j}`.repeat(5)\n                        }))\n                    });\n                }\n                \n                // Add to cache\n                for (let i = 0; i < 10; i++) {\n                    uiSystem.addToCache(`load-cache-${cycle}-${i}`, {\n                        data: Array(100).fill('cache data')\n                    });\n                }\n                \n                // Clean up some components\n                for (let i = 0; i < 10; i++) {\n                    uiSystem.destroyComponent(`load-comp-${cycle}-${i}`);\n                }\n                \n                // Periodic cleanup\n                if (cycle % 3 === 0) {\n                    uiSystem.performCleanup();\n                }\n            }\n            \n            const afterLoad = memoryMonitor.takeSnapshot('after-heavy-load');\n            const comparison = memoryMonitor.compareSnapshots(beforeLoad, afterLoad);\n            \n            // Memory should grow, but not excessively\n            expect(comparison.heapUsedDelta).toBeGreaterThan(0);\n            expect(comparison.heapUsedDelta).toBeLessThan(100 * 1024 * 1024); // Less than 100MB growth\n        });\n\n        test('should handle rapid component creation and destruction', () => {\n            const snapshots = [];\n            \n            for (let i = 0; i < 20; i++) {\n                snapshots.push(memoryMonitor.takeSnapshot(`rapid-test-${i}`));\n                \n                // Rapid create and destroy\n                const componentIds = [];\n                for (let j = 0; j < 10; j++) {\n                    const id = `rapid-comp-${i}-${j}`;\n                    componentIds.push(id);\n                    uiSystem.createComponent(id, 'menu', { items: 5 });\n                }\n                \n                // Immediately destroy all\n                componentIds.forEach(id => uiSystem.destroyComponent(id));\n            }\n            \n            // Check for memory leaks in rapid creation/destruction\n            const leakDetection = memoryMonitor.detectMemoryLeak(snapshots, 2); // 2MB threshold\n            \n            expect(leakDetection.isLeaking).toBe(false);\n            expect(uiSystem.components.size).toBe(0); // All components should be destroyed\n        });\n    });\n    \n    describe('Memory Cleanup Verification', () => {\n        test('should completely clean up after reset', () => {\n            // Create various resources\n            for (let i = 0; i < 10; i++) {\n                uiSystem.createComponent(`reset-comp-${i}`, 'chart', { points: 100 });\n                uiSystem.addToCache(`reset-cache-${i}`, { data: 'test data' });\n            }\n            \n            uiSystem.scheduleCleanup();\n            \n            const beforeReset = memoryMonitor.takeSnapshot('before-reset');\n            \n            // Reset everything\n            uiSystem.reset();\n            \n            const afterReset = memoryMonitor.takeSnapshot('after-reset');\n            \n            // Verify complete cleanup\n            expect(uiSystem.components.size).toBe(0);\n            expect(uiSystem.dataCache.size).toBe(0);\n            expect(uiSystem.eventListeners.size).toBe(0);\n            expect(uiSystem.timers.size).toBe(0);\n            expect(uiSystem.renderHistory).toHaveLength(0);\n        });\n\n        test('should properly clean up DOM references', () => {\n            const component = uiSystem.createComponent('dom-test', 'table', { rows: 20 });\n            \n            expect(component.domElements).toBeDefined();\n            expect(component.domElements.length).toBeGreaterThan(0);\n            \n            uiSystem.destroyComponent('dom-test');\n            \n            // DOM references should be nullified\n            expect(component.domElements).toBeNull();\n        });\n\n        test('should track timer cleanup', () => {\n            const initialTimerCount = uiSystem.timers.size;\n            \n            // Schedule multiple cleanup timers\n            for (let i = 0; i < 5; i++) {\n                uiSystem.scheduleCleanup();\n            }\n            \n            expect(uiSystem.timers.size).toBe(initialTimerCount + 5);\n            \n            // Reset should clear all timers\n            uiSystem.reset();\n            \n            expect(uiSystem.timers.size).toBe(0);\n        });\n    });\n});"
+/**
+ * Memory Usage Performance Test Suite
+ * Tests for memory consumption and leak detection in UI components
+ */
+
+import { describe, test, expect, beforeEach, afterEach, jest } from '@jest/globals';
+
+describe('Memory Usage Tests', () => {
+    let memoryMonitor;
+    let uiSystem;
+    let memorySnapshots;
+
+    beforeEach(() => {
+        memorySnapshots = [];
+        
+        // Mock memory monitoring (in real environment would use process.memoryUsage())
+        memoryMonitor = {
+            baseline: {
+                heapUsed: 50 * 1024 * 1024, // 50MB baseline
+                heapTotal: 100 * 1024 * 1024, // 100MB total
+                external: 5 * 1024 * 1024, // 5MB external
+                rss: 80 * 1024 * 1024 // 80MB RSS
+            },
+            currentUsage: null,
+            
+            getMemoryUsage: function() {
+                // Simulate memory usage fluctuation
+                const fluctuation = (Math.random() - 0.5) * 0.1; // ±10% fluctuation
+                const growth = (uiSystem.components.size * 1024 * 100); // 100KB per component
+                
+                return {
+                    heapUsed: Math.floor(this.baseline.heapUsed * (1 + fluctuation) + growth),
+                    heapTotal: Math.floor(this.baseline.heapTotal * (1 + fluctuation) + growth * 1.5),
+                    external: Math.floor(this.baseline.external * (1 + fluctuation)),
+                    rss: Math.floor(this.baseline.rss * (1 + fluctuation) + growth * 1.2),
+                    timestamp: Date.now()
+                };
+            },
+            
+            takeSnapshot: function(label) {
+                const usage = this.getMemoryUsage();
+                const snapshot = {
+                    label,
+                    usage,
+                    timestamp: Date.now()
+                };
+                
+                memorySnapshots.push(snapshot);
+                return snapshot;
+            },
+            
+            compareSnapshots: function(before, after) {
+                return {
+                    heapUsedDelta: after.usage.heapUsed - before.usage.heapUsed,
+                    heapTotalDelta: after.usage.heapTotal - before.usage.heapTotal,
+                    externalDelta: after.usage.external - before.usage.external,
+                    rssDelta: after.usage.rss - before.usage.rss,
+                    timeDelta: after.timestamp - before.timestamp,
+                    
+                    getMemoryGrowthRate: function() {
+                        const timeSeconds = this.timeDelta / 1000;
+                        return {
+                            heapPerSecond: this.heapUsedDelta / timeSeconds,
+                            rssPerSecond: this.rssDelta / timeSeconds
+                        };
+                    }
+                };
+            },
+            
+            detectMemoryLeak: function(snapshots, thresholdMB = 10) {
+                if (snapshots.length < 3) return null;
+                
+                const recent = snapshots.slice(-5); // Last 5 snapshots
+                const growthRates = [];
+                
+                for (let i = 1; i < recent.length; i++) {
+                    const comparison = this.compareSnapshots(recent[i-1], recent[i]);
+                    const growthRate = comparison.getMemoryGrowthRate();
+                    growthRates.push(growthRate.heapPerSecond);
+                }
+                
+                const avgGrowthRate = growthRates.reduce((a, b) => a + b, 0) / growthRates.length;
+                const thresholdBytesPerSecond = thresholdMB * 1024 * 1024;
+                
+                return {
+                    isLeaking: avgGrowthRate > thresholdBytesPerSecond,
+                    avgGrowthRate,
+                    thresholdBytesPerSecond,
+                    confidence: Math.min(1, growthRates.length / 5) // More snapshots = higher confidence
+                };
+            },
+            
+            formatBytes: function(bytes) {
+                const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+                if (bytes === 0) return '0 Byte';
+                const i = parseInt(Math.floor(Math.log(bytes) / Math.log(1024)));
+                return Math.round(bytes / Math.pow(1024, i) * 100) / 100 + ' ' + sizes[i];
+            },
+            
+            getMemoryReport: function() {
+                const current = this.getMemoryUsage();
+                const baseline = this.baseline;
+                
+                return {
+                    current: {
+                        heapUsed: this.formatBytes(current.heapUsed),
+                        heapTotal: this.formatBytes(current.heapTotal),
+                        external: this.formatBytes(current.external),
+                        rss: this.formatBytes(current.rss)
+                    },
+                    growth: {
+                        heapUsed: this.formatBytes(current.heapUsed - baseline.heapUsed),
+                        heapTotal: this.formatBytes(current.heapTotal - baseline.heapTotal),
+                        external: this.formatBytes(current.external - baseline.external),
+                        rss: this.formatBytes(current.rss - baseline.rss)
+                    },
+                    utilization: {
+                        heapUsedPercent: Math.round((current.heapUsed / current.heapTotal) * 100),
+                        heapGrowthPercent: Math.round(((current.heapUsed - baseline.heapUsed) / baseline.heapUsed) * 100)
+                    }
+                };
+            }
+        };
+        
+        uiSystem = {
+            components: new Map(),
+            eventListeners: new Set(),
+            timers: new Set(),
+            dataCache: new Map(),
+            renderHistory: [],
+            
+            createComponent: function(id, type, data = {}) {
+                const component = {
+                    id,
+                    type,
+                    data: { ...data },
+                    domElements: this.createMockDomElements(type),
+                    eventListeners: new Set(),
+                    createdAt: Date.now(),
+                    memoryFootprint: this.calculateMemoryFootprint(type, data)
+                };
+                
+                this.components.set(id, component);
+                this.attachEventListeners(component);
+                
+                return component;
+            },
+            
+            destroyComponent: function(id) {
+                const component = this.components.get(id);
+                if (!component) return false;
+                
+                // Clean up event listeners
+                component.eventListeners.forEach(listener => {
+                    this.eventListeners.delete(listener);
+                });
+                
+                // Clean up DOM elements
+                component.domElements = null;
+                
+                this.components.delete(id);
+                return true;
+            },
+            
+            createMockDomElements: function(type) {
+                // Simulate DOM elements based on component type
+                const elementCounts = {
+                    'menu': 10,
+                    'table': 50,
+                    'form': 20,
+                    'chart': 100,
+                    'text': 1
+                };
+                
+                const count = elementCounts[type] || 5;
+                return Array.from({ length: count }, (_, i) => ({
+                    id: `elem_${type}_${i}`,
+                    innerHTML: `<div>Mock ${type} element ${i}</div>`,
+                    attributes: { class: `${type}-element`, 'data-id': i },
+                    children: []
+                }));
+            },
+            
+            attachEventListeners: function(component) {
+                // Simulate event listener attachment
+                const events = ['click', 'focus', 'blur', 'keydown'];
+                events.forEach(event => {
+                    const listener = {
+                        componentId: component.id,
+                        event,
+                        handler: () => {}, // Mock handler
+                        createdAt: Date.now()
+                    };
+                    
+                    component.eventListeners.add(listener);
+                    this.eventListeners.add(listener);
+                });
+            },
+            
+            calculateMemoryFootprint: function(type, data) {
+                const baseFootprints = {
+                    'menu': 5 * 1024, // 5KB
+                    'table': 20 * 1024, // 20KB
+                    'form': 15 * 1024, // 15KB
+                    'chart': 50 * 1024, // 50KB
+                    'text': 1 * 1024 // 1KB
+                };
+                
+                const baseFootprint = baseFootprints[type] || 10 * 1024;
+                const dataSize = JSON.stringify(data).length;
+                
+                return baseFootprint + dataSize;
+            },
+            
+            addToCache: function(key, value) {
+                this.dataCache.set(key, {
+                    value,
+                    timestamp: Date.now(),
+                    accessCount: 0,
+                    size: JSON.stringify(value).length
+                });
+            },
+            
+            getFromCache: function(key) {
+                const cached = this.dataCache.get(key);
+                if (cached) {
+                    cached.accessCount++;
+                    return cached.value;
+                }
+                return null;
+            },
+            
+            clearCache: function() {
+                this.dataCache.clear();
+            },
+            
+            scheduleCleanup: function() {
+                const timerId = setTimeout(() => {
+                    this.performCleanup();
+                    this.timers.delete(timerId);
+                }, 1000);
+                
+                this.timers.add(timerId);
+            },
+            
+            performCleanup: function() {
+                // Clean up old cache entries
+                const now = Date.now();
+                const maxAge = 5 * 60 * 1000; // 5 minutes
+                
+                for (const [key, cached] of this.dataCache.entries()) {
+                    if (now - cached.timestamp > maxAge && cached.accessCount === 0) {
+                        this.dataCache.delete(key);
+                    }
+                }
+                
+                // Clean up old render history
+                if (this.renderHistory.length > 100) {
+                    this.renderHistory = this.renderHistory.slice(-50);
+                }
+            },
+            
+            getTotalMemoryFootprint: function() {
+                let total = 0;
+                
+                // Component memory
+                this.components.forEach(component => {
+                    total += component.memoryFootprint;
+                });
+                
+                // Cache memory
+                this.dataCache.forEach(cached => {
+                    total += cached.size;
+                });
+                
+                // Event listeners (estimate)
+                total += this.eventListeners.size * 1024; // 1KB per listener estimate
+                
+                return total;
+            },
+            
+            getMemoryStats: function() {
+                const componentMemory = Array.from(this.components.values())
+                    .reduce((total, comp) => total + comp.memoryFootprint, 0);
+                
+                const cacheMemory = Array.from(this.dataCache.values())
+                    .reduce((total, cached) => total + cached.size, 0);
+                
+                return {
+                    totalComponents: this.components.size,
+                    componentMemory: memoryMonitor.formatBytes(componentMemory),
+                    totalCacheEntries: this.dataCache.size,
+                    cacheMemory: memoryMonitor.formatBytes(cacheMemory),
+                    totalEventListeners: this.eventListeners.size,
+                    estimatedTotal: memoryMonitor.formatBytes(this.getTotalMemoryFootprint())
+                };
+            },
+            
+            reset: function() {
+                // Clear all components
+                this.components.forEach((_, id) => this.destroyComponent(id));
+                
+                // Clear cache
+                this.clearCache();
+                
+                // Clear timers
+                this.timers.forEach(timer => clearTimeout(timer));
+                this.timers.clear();
+                
+                // Clear history
+                this.renderHistory = [];
+            }
+        };
+    });
+    
+    describe('Memory Usage Monitoring', () => {
+        test('should track baseline memory usage', () => {
+            const baseline = memoryMonitor.takeSnapshot('baseline');
+            
+            expect(baseline.label).toBe('baseline');
+            expect(baseline.usage.heapUsed).toBeGreaterThan(0);
+            expect(baseline.usage.heapTotal).toBeGreaterThan(baseline.usage.heapUsed);
+            expect(baseline.usage.rss).toBeGreaterThan(0);
+        });
+
+        test('should detect memory growth with component creation', () => {
+            const before = memoryMonitor.takeSnapshot('before-components');
+            
+            // Create multiple components
+            for (let i = 0; i < 10; i++) {
+                uiSystem.createComponent(`comp-${i}`, 'table', {
+                    rows: Array.from({ length: 20 }, (_, j) => ({ id: j, name: `Row ${j}` }))
+                });
+            }
+            
+            const after = memoryMonitor.takeSnapshot('after-components');
+            const comparison = memoryMonitor.compareSnapshots(before, after);
+            
+            expect(comparison.heapUsedDelta).toBeGreaterThan(0);
+            expect(comparison.rssDelta).toBeGreaterThan(0);
+            expect(uiSystem.components.size).toBe(10);
+        });
+
+        test('should show memory reduction after cleanup', () => {
+            // Create components
+            for (let i = 0; i < 20; i++) {
+                uiSystem.createComponent(`temp-comp-${i}`, 'chart', {
+                    dataPoints: Array.from({ length: 100 }, () => Math.random())
+                });
+            }
+            
+            const beforeCleanup = memoryMonitor.takeSnapshot('before-cleanup');
+            
+            // Destroy half of the components
+            for (let i = 0; i < 10; i++) {
+                uiSystem.destroyComponent(`temp-comp-${i}`);
+            }
+            
+            const afterCleanup = memoryMonitor.takeSnapshot('after-cleanup');
+            const comparison = memoryMonitor.compareSnapshots(beforeCleanup, afterCleanup);
+            
+            expect(comparison.heapUsedDelta).toBeLessThan(0); // Memory should decrease
+            expect(uiSystem.components.size).toBe(10);
+        });
+    });
+    
+    describe('Memory Leak Detection', () => {
+        test('should detect potential memory leaks', () => {
+            // Simulate gradual memory growth
+            for (let i = 0; i < 10; i++) {
+                memoryMonitor.takeSnapshot(`leak-test-${i}`);
+                
+                // Create components without cleaning up
+                uiSystem.createComponent(`leak-comp-${i}`, 'table', {
+                    data: Array.from({ length: 50 }, (_, j) => ({ id: j, value: Math.random() }))
+                });
+            }
+            
+            const leakDetection = memoryMonitor.detectMemoryLeak(memorySnapshots);
+            
+            expect(leakDetection).not.toBeNull();
+            expect(leakDetection.avgGrowthRate).toBeGreaterThan(0);
+        });
+
+        test('should not flag normal memory usage as leak', () => {
+            // Create and destroy components (normal usage)
+            for (let i = 0; i < 8; i++) {
+                memoryMonitor.takeSnapshot(`normal-usage-${i}`);
+                
+                // Create component
+                uiSystem.createComponent(`normal-comp-${i}`, 'menu', { items: 5 });
+                
+                // Clean up previous component
+                if (i > 0) {
+                    uiSystem.destroyComponent(`normal-comp-${i-1}`);
+                }
+            }
+            
+            const leakDetection = memoryMonitor.detectMemoryLeak(memorySnapshots, 5); // 5MB threshold
+            
+            expect(leakDetection.isLeaking).toBe(false);
+        });
+
+        test('should track event listener cleanup', () => {
+            const initialListeners = uiSystem.eventListeners.size;
+            
+            // Create components with event listeners
+            for (let i = 0; i < 5; i++) {
+                uiSystem.createComponent(`listener-comp-${i}`, 'form');
+            }
+            
+            expect(uiSystem.eventListeners.size).toBeGreaterThan(initialListeners);
+            
+            // Destroy components
+            for (let i = 0; i < 5; i++) {
+                uiSystem.destroyComponent(`listener-comp-${i}`);
+            }
+            
+            // Event listeners should be cleaned up
+            expect(uiSystem.eventListeners.size).toBe(initialListeners);
+        });
+    });
+    
+    describe('Cache Memory Management', () => {
+        test('should track cache memory usage', () => {
+            const beforeCache = memoryMonitor.takeSnapshot('before-cache');
+            
+            // Add items to cache
+            for (let i = 0; i < 50; i++) {
+                const largeData = Array.from({ length: 100 }, (_, j) => ({
+                    id: j,
+                    name: `Item ${j}`,
+                    data: `Large data string ${j}`.repeat(10)
+                }));
+                
+                uiSystem.addToCache(`cache-key-${i}`, largeData);
+            }
+            
+            const afterCache = memoryMonitor.takeSnapshot('after-cache');
+            const comparison = memoryMonitor.compareSnapshots(beforeCache, afterCache);
+            
+            expect(comparison.heapUsedDelta).toBeGreaterThan(0);
+            expect(uiSystem.dataCache.size).toBe(50);
+        });
+
+        test('should perform automatic cache cleanup', () => {
+            // Add cache entries
+            for (let i = 0; i < 20; i++) {
+                uiSystem.addToCache(`temp-key-${i}`, { data: `temp data ${i}` });
+            }
+            
+            expect(uiSystem.dataCache.size).toBe(20);
+            
+            // Manually trigger cleanup (simulating time passage)
+            uiSystem.performCleanup();
+            
+            // Some entries might be cleaned up based on access patterns
+            expect(uiSystem.dataCache.size).toBeLessThanOrEqual(20);
+        });
+
+        test('should manage render history memory', () => {
+            // Fill render history beyond limit
+            for (let i = 0; i < 150; i++) {
+                uiSystem.renderHistory.push({
+                    id: i,
+                    type: 'render',
+                    timestamp: Date.now(),
+                    data: `render data ${i}`
+                });
+            }
+            
+            expect(uiSystem.renderHistory.length).toBe(150);
+            
+            // Trigger cleanup
+            uiSystem.performCleanup();
+            
+            // History should be trimmed
+            expect(uiSystem.renderHistory.length).toBeLessThan(150);
+            expect(uiSystem.renderHistory.length).toBeGreaterThan(0);
+        });
+    });
+    
+    describe('Memory Usage Reporting', () => {
+        test('should provide comprehensive memory report', () => {
+            // Create some components and cache data
+            uiSystem.createComponent('comp1', 'table', { rows: 50 });
+            uiSystem.createComponent('comp2', 'chart', { dataPoints: 200 });
+            uiSystem.addToCache('data1', { largeArray: Array(1000).fill('data') });
+            
+            const memoryReport = memoryMonitor.getMemoryReport();
+            
+            expect(memoryReport.current).toBeDefined();
+            expect(memoryReport.growth).toBeDefined();
+            expect(memoryReport.utilization).toBeDefined();
+            expect(memoryReport.utilization.heapUsedPercent).toBeGreaterThan(0);
+            expect(memoryReport.utilization.heapUsedPercent).toBeLessThanOrEqual(100);
+        });
+
+        test('should provide detailed component memory stats', () => {
+            // Create various types of components
+            uiSystem.createComponent('menu1', 'menu', { items: 10 });
+            uiSystem.createComponent('table1', 'table', { rows: 100, columns: 5 });
+            uiSystem.createComponent('form1', 'form', { fields: 20 });
+            
+            const stats = uiSystem.getMemoryStats();
+            
+            expect(stats.totalComponents).toBe(3);
+            expect(stats.componentMemory).toBeDefined();
+            expect(stats.totalEventListeners).toBeGreaterThan(0);
+            expect(stats.estimatedTotal).toBeDefined();
+        });
+
+        test('should format memory sizes correctly', () => {
+            const testCases = [
+                { bytes: 1024, expected: '1 KB' },
+                { bytes: 1048576, expected: '1 MB' },
+                { bytes: 1073741824, expected: '1 GB' },
+                { bytes: 500, expected: '500 Bytes' }
+            ];
+            
+            testCases.forEach(({ bytes, expected }) => {
+                const formatted = memoryMonitor.formatBytes(bytes);
+                expect(formatted).toBe(expected);
+            });
+        });
+    });
+    
+    describe('Memory Performance Under Load', () => {
+        test('should maintain reasonable memory usage under heavy load', () => {
+            const beforeLoad = memoryMonitor.takeSnapshot('before-heavy-load');
+            
+            // Simulate heavy component creation and destruction
+            for (let cycle = 0; cycle < 10; cycle++) {
+                // Create batch of components
+                for (let i = 0; i < 20; i++) {
+                    const id = `load-comp-${cycle}-${i}`;
+                    uiSystem.createComponent(id, 'table', {
+                        data: Array.from({ length: 50 }, (_, j) => ({
+                            id: j,
+                            value: Math.random(),
+                            text: `Data ${j}`.repeat(5)
+                        }))
+                    });
+                }
+                
+                // Add to cache
+                for (let i = 0; i < 10; i++) {
+                    uiSystem.addToCache(`load-cache-${cycle}-${i}`, {
+                        data: Array(100).fill('cache data')
+                    });
+                }
+                
+                // Clean up some components
+                for (let i = 0; i < 10; i++) {
+                    uiSystem.destroyComponent(`load-comp-${cycle}-${i}`);
+                }
+                
+                // Periodic cleanup
+                if (cycle % 3 === 0) {
+                    uiSystem.performCleanup();
+                }
+            }
+            
+            const afterLoad = memoryMonitor.takeSnapshot('after-heavy-load');
+            const comparison = memoryMonitor.compareSnapshots(beforeLoad, afterLoad);
+            
+            // Memory should grow, but not excessively
+            expect(comparison.heapUsedDelta).toBeGreaterThan(0);
+            expect(comparison.heapUsedDelta).toBeLessThan(100 * 1024 * 1024); // Less than 100MB growth
+        });
+
+        test('should handle rapid component creation and destruction', () => {
+            const snapshots = [];
+            
+            for (let i = 0; i < 20; i++) {
+                snapshots.push(memoryMonitor.takeSnapshot(`rapid-test-${i}`));
+                
+                // Rapid create and destroy
+                const componentIds = [];
+                for (let j = 0; j < 10; j++) {
+                    const id = `rapid-comp-${i}-${j}`;
+                    componentIds.push(id);
+                    uiSystem.createComponent(id, 'menu', { items: 5 });
+                }
+                
+                // Immediately destroy all
+                componentIds.forEach(id => uiSystem.destroyComponent(id));
+            }
+            
+            // Check for memory leaks in rapid creation/destruction
+            const leakDetection = memoryMonitor.detectMemoryLeak(snapshots, 2); // 2MB threshold
+            
+            expect(leakDetection.isLeaking).toBe(false);
+            expect(uiSystem.components.size).toBe(0); // All components should be destroyed
+        });
+    });
+    
+    describe('Memory Cleanup Verification', () => {
+        test('should completely clean up after reset', () => {
+            // Create various resources
+            for (let i = 0; i < 10; i++) {
+                uiSystem.createComponent(`reset-comp-${i}`, 'chart', { points: 100 });
+                uiSystem.addToCache(`reset-cache-${i}`, { data: 'test data' });
+            }
+            
+            uiSystem.scheduleCleanup();
+            
+            const beforeReset = memoryMonitor.takeSnapshot('before-reset');
+            
+            // Reset everything
+            uiSystem.reset();
+            
+            const afterReset = memoryMonitor.takeSnapshot('after-reset');
+            
+            // Verify complete cleanup
+            expect(uiSystem.components.size).toBe(0);
+            expect(uiSystem.dataCache.size).toBe(0);
+            expect(uiSystem.eventListeners.size).toBe(0);
+            expect(uiSystem.timers.size).toBe(0);
+            expect(uiSystem.renderHistory).toHaveLength(0);
+        });
+
+        test('should properly clean up DOM references', () => {
+            const component = uiSystem.createComponent('dom-test', 'table', { rows: 20 });
+            
+            expect(component.domElements).toBeDefined();
+            expect(component.domElements.length).toBeGreaterThan(0);
+            
+            uiSystem.destroyComponent('dom-test');
+            
+            // DOM references should be nullified
+            expect(component.domElements).toBeNull();
+        });
+
+        test('should track timer cleanup', () => {
+            const initialTimerCount = uiSystem.timers.size;
+            
+            // Schedule multiple cleanup timers
+            for (let i = 0; i < 5; i++) {
+                uiSystem.scheduleCleanup();
+            }
+            
+            expect(uiSystem.timers.size).toBe(initialTimerCount + 5);
+            
+            // Reset should clear all timers
+            uiSystem.reset();
+            
+            expect(uiSystem.timers.size).toBe(0);
+        });
+    });
+});"

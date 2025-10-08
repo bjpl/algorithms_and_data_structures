@@ -59,4 +59,287 @@ describe('Theme Application Tests', () => {
                     muted: 'white',
                     accent: 'white',
                     background: 'black',
-                    foreground: 'white'\n                }\n            },\n            setTheme: function(themeName) {\n                if (this.themes[themeName]) {\n                    this.currentTheme = themeName;\n                    return true;\n                }\n                return false;\n            },\n            getTheme: function() {\n                return this.themes[this.currentTheme];\n            },\n            applyTheme: function(text, style) {\n                const theme = this.getTheme();\n                const color = theme[style] || theme.foreground;\n                return chalk[color] ? chalk[color](text) : text;\n            }\n        };\n    });\n\n    afterEach(() => {\n        chalk.level = originalChalkLevel;\n    });\n\n    describe('Theme Management', () => {\n        test('should set valid theme successfully', () => {\n            const result = themeManager.setTheme('dark');\n            \n            expect(result).toBe(true);\n            expect(themeManager.currentTheme).toBe('dark');\n        });\n\n        test('should reject invalid theme names', () => {\n            const result = themeManager.setTheme('nonexistent');\n            \n            expect(result).toBe(false);\n            expect(themeManager.currentTheme).toBe('default');\n        });\n\n        test('should return current theme configuration', () => {\n            themeManager.setTheme('light');\n            const theme = themeManager.getTheme();\n            \n            expect(theme.primary).toBe('black');\n            expect(theme.background).toBe('white');\n        });\n    });\n\n    describe('Color Application', () => {\n        test('should apply primary color styling', () => {\n            const styled = themeManager.applyTheme('Primary Text', 'primary');\n            \n            expect(styled).toContain('Primary Text');\n            // Test that chalk styling was applied (hard to test exact ANSI codes)\n            expect(typeof styled).toBe('string');\n        });\n\n        test('should apply success color styling', () => {\n            const styled = themeManager.applyTheme('✓ Success', 'success');\n            \n            expect(styled).toContain('✓ Success');\n        });\n\n        test('should apply error color styling', () => {\n            const styled = themeManager.applyTheme('✗ Error', 'error');\n            \n            expect(styled).toContain('✗ Error');\n        });\n\n        test('should apply warning color styling', () => {\n            const styled = themeManager.applyTheme('⚠ Warning', 'warning');\n            \n            expect(styled).toContain('⚠ Warning');\n        });\n\n        test('should fallback to foreground color for unknown styles', () => {\n            const styled = themeManager.applyTheme('Unknown Style', 'unknownStyle');\n            \n            expect(styled).toContain('Unknown Style');\n        });\n    });\n\n    describe('Theme Variations', () => {\n        test('should apply dark theme correctly', () => {\n            themeManager.setTheme('dark');\n            const theme = themeManager.getTheme();\n            \n            expect(theme.primary).toBe('white');\n            expect(theme.success).toBe('brightGreen');\n            expect(theme.background).toBe('black');\n        });\n\n        test('should apply light theme correctly', () => {\n            themeManager.setTheme('light');\n            const theme = themeManager.getTheme();\n            \n            expect(theme.primary).toBe('black');\n            expect(theme.background).toBe('white');\n        });\n\n        test('should apply accessible theme correctly', () => {\n            themeManager.setTheme('accessible');\n            const theme = themeManager.getTheme();\n            \n            // Accessible theme uses high contrast white on black\n            expect(theme.primary).toBe('white');\n            expect(theme.success).toBe('white');\n            expect(theme.error).toBe('white');\n        });\n    });\n\n    describe('UI Component Theming', () => {\n        test('should theme table components', () => {\n            const tableThemer = {\n                getTableStyle: function(themeName = 'default') {\n                    const theme = themeManager.themes[themeName];\n                    return {\n                        head: [theme.primary],\n                        border: [theme.muted]\n                    };\n                }\n            };\n\n            themeManager.setTheme('dark');\n            const style = tableThemer.getTableStyle('dark');\n            \n            expect(style.head[0]).toBe('white');\n            expect(style.border[0]).toBe('dim');\n        });\n\n        test('should theme progress bars', () => {\n            const progressThemer = {\n                getProgressStyle: function(percentage) {\n                    const theme = themeManager.getTheme();\n                    if (percentage >= 100) return theme.success;\n                    if (percentage >= 75) return theme.primary;\n                    if (percentage >= 50) return theme.secondary;\n                    if (percentage >= 25) return theme.warning;\n                    return theme.error;\n                }\n            };\n\n            expect(progressThemer.getProgressStyle(100)).toBe('green');\n            expect(progressThemer.getProgressStyle(50)).toBe('blue');\n            expect(progressThemer.getProgressStyle(10)).toBe('red');\n        });\n\n        test('should theme menu items', () => {\n            const menuThemer = {\n                formatMenuItem: function(item, isSelected = false) {\n                    const theme = themeManager.getTheme();\n                    const labelColor = isSelected ? theme.accent : theme.primary;\n                    const descColor = theme.muted;\n                    \n                    return {\n                        label: themeManager.applyTheme(item.label, isSelected ? 'accent' : 'primary'),\n                        description: themeManager.applyTheme(item.description, 'muted')\n                    };\n                }\n            };\n\n            const item = { label: 'Arrays', description: 'Learn about arrays' };\n            const formatted = menuThemer.formatMenuItem(item, true);\n            \n            expect(formatted.label).toContain('Arrays');\n            expect(formatted.description).toContain('Learn about arrays');\n        });\n    });\n\n    describe('Color Accessibility', () => {\n        test('should provide high contrast colors for accessibility', () => {\n            themeManager.setTheme('accessible');\n            const theme = themeManager.getTheme();\n            \n            // All colors should be white for maximum contrast\n            Object.keys(theme).forEach(key => {\n                if (key !== 'background') {\n                    expect(theme[key]).toBe('white');\n                }\n            });\n        });\n\n        test('should validate color contrast ratios', () => {\n            const contrastChecker = {\n                hasGoodContrast: function(foreground, background) {\n                    // Simplified contrast check - in real implementation would calculate WCAG ratios\n                    const highContrastPairs = [\n                        ['white', 'black'],\n                        ['black', 'white'],\n                        ['yellow', 'black'],\n                        ['cyan', 'black']\n                    ];\n                    \n                    return highContrastPairs.some(pair => \n                        (pair[0] === foreground && pair[1] === background) ||\n                        (pair[1] === foreground && pair[0] === background)\n                    );\n                }\n            };\n\n            expect(contrastChecker.hasGoodContrast('white', 'black')).toBe(true);\n            expect(contrastChecker.hasGoodContrast('yellow', 'yellow')).toBe(false);\n        });\n    });\n\n    describe('Dynamic Theme Switching', () => {\n        test('should switch themes at runtime', () => {\n            const initialTheme = themeManager.currentTheme;\n            \n            themeManager.setTheme('dark');\n            expect(themeManager.currentTheme).toBe('dark');\n            \n            themeManager.setTheme('light');\n            expect(themeManager.currentTheme).toBe('light');\n            \n            themeManager.setTheme('default');\n            expect(themeManager.currentTheme).toBe('default');\n        });\n\n        test('should preserve theme state across sessions', () => {\n            const themeStorage = {\n                save: function(theme) {\n                    this.savedTheme = theme;\n                },\n                load: function() {\n                    return this.savedTheme || 'default';\n                },\n                savedTheme: null\n            };\n\n            themeStorage.save('dark');\n            const loaded = themeStorage.load();\n            \n            expect(loaded).toBe('dark');\n        });\n    });\n\n    describe('Terminal Environment Detection', () => {\n        test('should detect color support capability', () => {\n            const terminalDetector = {\n                supportsColor: function() {\n                    return chalk.level > 0;\n                },\n                supports256Colors: function() {\n                    return chalk.level >= 2;\n                },\n                supportsTrueColor: function() {\n                    return chalk.level >= 3;\n                }\n            };\n\n            expect(terminalDetector.supportsColor()).toBe(true);\n            expect(terminalDetector.supportsTrueColor()).toBe(true);\n        });\n\n        test('should fallback gracefully when colors not supported', () => {\n            const originalLevel = chalk.level;\n            chalk.level = 0; // No color support\n            \n            const fallbackThemer = {\n                applyTheme: function(text, style) {\n                    if (chalk.level === 0) {\n                        // Fallback to plain text with symbols\n                        const symbols = {\n                            success: '✓ ',\n                            error: '✗ ', \n                            warning: '⚠ ',\n                            primary: '• ',\n                            accent: '» '\n                        };\n                        return (symbols[style] || '') + text;\n                    }\n                    return themeManager.applyTheme(text, style);\n                }\n            };\n\n            const result = fallbackThemer.applyTheme('Test', 'success');\n            expect(result).toBe('✓ Test');\n            \n            chalk.level = originalLevel;\n        });\n    });\n});
+                    foreground: 'white'
+                }
+            },
+            setTheme: function(themeName) {
+                if (this.themes[themeName]) {
+                    this.currentTheme = themeName;
+                    return true;
+                }
+                return false;
+            },
+            getTheme: function() {
+                return this.themes[this.currentTheme];
+            },
+            applyTheme: function(text, style) {
+                const theme = this.getTheme();
+                const color = theme[style] || theme.foreground;
+                return chalk[color] ? chalk[color](text) : text;
+            }
+        };
+    });
+
+    afterEach(() => {
+        chalk.level = originalChalkLevel;
+    });
+
+    describe('Theme Management', () => {
+        test('should set valid theme successfully', () => {
+            const result = themeManager.setTheme('dark');
+            
+            expect(result).toBe(true);
+            expect(themeManager.currentTheme).toBe('dark');
+        });
+
+        test('should reject invalid theme names', () => {
+            const result = themeManager.setTheme('nonexistent');
+            
+            expect(result).toBe(false);
+            expect(themeManager.currentTheme).toBe('default');
+        });
+
+        test('should return current theme configuration', () => {
+            themeManager.setTheme('light');
+            const theme = themeManager.getTheme();
+            
+            expect(theme.primary).toBe('black');
+            expect(theme.background).toBe('white');
+        });
+    });
+
+    describe('Color Application', () => {
+        test('should apply primary color styling', () => {
+            const styled = themeManager.applyTheme('Primary Text', 'primary');
+            
+            expect(styled).toContain('Primary Text');
+            // Test that chalk styling was applied (hard to test exact ANSI codes)
+            expect(typeof styled).toBe('string');
+        });
+
+        test('should apply success color styling', () => {
+            const styled = themeManager.applyTheme('✓ Success', 'success');
+            
+            expect(styled).toContain('✓ Success');
+        });
+
+        test('should apply error color styling', () => {
+            const styled = themeManager.applyTheme('✗ Error', 'error');
+            
+            expect(styled).toContain('✗ Error');
+        });
+
+        test('should apply warning color styling', () => {
+            const styled = themeManager.applyTheme('⚠ Warning', 'warning');
+            
+            expect(styled).toContain('⚠ Warning');
+        });
+
+        test('should fallback to foreground color for unknown styles', () => {
+            const styled = themeManager.applyTheme('Unknown Style', 'unknownStyle');
+            
+            expect(styled).toContain('Unknown Style');
+        });
+    });
+
+    describe('Theme Variations', () => {
+        test('should apply dark theme correctly', () => {
+            themeManager.setTheme('dark');
+            const theme = themeManager.getTheme();
+            
+            expect(theme.primary).toBe('white');
+            expect(theme.success).toBe('brightGreen');
+            expect(theme.background).toBe('black');
+        });
+
+        test('should apply light theme correctly', () => {
+            themeManager.setTheme('light');
+            const theme = themeManager.getTheme();
+            
+            expect(theme.primary).toBe('black');
+            expect(theme.background).toBe('white');
+        });
+
+        test('should apply accessible theme correctly', () => {
+            themeManager.setTheme('accessible');
+            const theme = themeManager.getTheme();
+            
+            // Accessible theme uses high contrast white on black
+            expect(theme.primary).toBe('white');
+            expect(theme.success).toBe('white');
+            expect(theme.error).toBe('white');
+        });
+    });
+
+    describe('UI Component Theming', () => {
+        test('should theme table components', () => {
+            const tableThemer = {
+                getTableStyle: function(themeName = 'default') {
+                    const theme = themeManager.themes[themeName];
+                    return {
+                        head: [theme.primary],
+                        border: [theme.muted]
+                    };
+                }
+            };
+
+            themeManager.setTheme('dark');
+            const style = tableThemer.getTableStyle('dark');
+            
+            expect(style.head[0]).toBe('white');
+            expect(style.border[0]).toBe('dim');
+        });
+
+        test('should theme progress bars', () => {
+            const progressThemer = {
+                getProgressStyle: function(percentage) {
+                    const theme = themeManager.getTheme();
+                    if (percentage >= 100) return theme.success;
+                    if (percentage >= 75) return theme.primary;
+                    if (percentage >= 50) return theme.secondary;
+                    if (percentage >= 25) return theme.warning;
+                    return theme.error;
+                }
+            };
+
+            expect(progressThemer.getProgressStyle(100)).toBe('green');
+            expect(progressThemer.getProgressStyle(50)).toBe('blue');
+            expect(progressThemer.getProgressStyle(10)).toBe('red');
+        });
+
+        test('should theme menu items', () => {
+            const menuThemer = {
+                formatMenuItem: function(item, isSelected = false) {
+                    const theme = themeManager.getTheme();
+                    const labelColor = isSelected ? theme.accent : theme.primary;
+                    const descColor = theme.muted;
+                    
+                    return {
+                        label: themeManager.applyTheme(item.label, isSelected ? 'accent' : 'primary'),
+                        description: themeManager.applyTheme(item.description, 'muted')
+                    };
+                }
+            };
+
+            const item = { label: 'Arrays', description: 'Learn about arrays' };
+            const formatted = menuThemer.formatMenuItem(item, true);
+            
+            expect(formatted.label).toContain('Arrays');
+            expect(formatted.description).toContain('Learn about arrays');
+        });
+    });
+
+    describe('Color Accessibility', () => {
+        test('should provide high contrast colors for accessibility', () => {
+            themeManager.setTheme('accessible');
+            const theme = themeManager.getTheme();
+            
+            // All colors should be white for maximum contrast
+            Object.keys(theme).forEach(key => {
+                if (key !== 'background') {
+                    expect(theme[key]).toBe('white');
+                }
+            });
+        });
+
+        test('should validate color contrast ratios', () => {
+            const contrastChecker = {
+                hasGoodContrast: function(foreground, background) {
+                    // Simplified contrast check - in real implementation would calculate WCAG ratios
+                    const highContrastPairs = [
+                        ['white', 'black'],
+                        ['black', 'white'],
+                        ['yellow', 'black'],
+                        ['cyan', 'black']
+                    ];
+                    
+                    return highContrastPairs.some(pair => 
+                        (pair[0] === foreground && pair[1] === background) ||
+                        (pair[1] === foreground && pair[0] === background)
+                    );
+                }
+            };
+
+            expect(contrastChecker.hasGoodContrast('white', 'black')).toBe(true);
+            expect(contrastChecker.hasGoodContrast('yellow', 'yellow')).toBe(false);
+        });
+    });
+
+    describe('Dynamic Theme Switching', () => {
+        test('should switch themes at runtime', () => {
+            const initialTheme = themeManager.currentTheme;
+            
+            themeManager.setTheme('dark');
+            expect(themeManager.currentTheme).toBe('dark');
+            
+            themeManager.setTheme('light');
+            expect(themeManager.currentTheme).toBe('light');
+            
+            themeManager.setTheme('default');
+            expect(themeManager.currentTheme).toBe('default');
+        });
+
+        test('should preserve theme state across sessions', () => {
+            const themeStorage = {
+                save: function(theme) {
+                    this.savedTheme = theme;
+                },
+                load: function() {
+                    return this.savedTheme || 'default';
+                },
+                savedTheme: null
+            };
+
+            themeStorage.save('dark');
+            const loaded = themeStorage.load();
+            
+            expect(loaded).toBe('dark');
+        });
+    });
+
+    describe('Terminal Environment Detection', () => {
+        test('should detect color support capability', () => {
+            const terminalDetector = {
+                supportsColor: function() {
+                    return chalk.level > 0;
+                },
+                supports256Colors: function() {
+                    return chalk.level >= 2;
+                },
+                supportsTrueColor: function() {
+                    return chalk.level >= 3;
+                }
+            };
+
+            expect(terminalDetector.supportsColor()).toBe(true);
+            expect(terminalDetector.supportsTrueColor()).toBe(true);
+        });
+
+        test('should fallback gracefully when colors not supported', () => {
+            const originalLevel = chalk.level;
+            chalk.level = 0; // No color support
+            
+            const fallbackThemer = {
+                applyTheme: function(text, style) {
+                    if (chalk.level === 0) {
+                        // Fallback to plain text with symbols
+                        const symbols = {
+                            success: '✓ ',
+                            error: '✗ ', 
+                            warning: '⚠ ',
+                            primary: '• ',
+                            accent: '» '
+                        };
+                        return (symbols[style] || '') + text;
+                    }
+                    return themeManager.applyTheme(text, style);
+                }
+            };
+
+            const result = fallbackThemer.applyTheme('Test', 'success');
+            expect(result).toBe('✓ Test');
+            
+            chalk.level = originalLevel;
+        });
+    });
+});

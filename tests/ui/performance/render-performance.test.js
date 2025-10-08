@@ -6,4 +6,611 @@
 import { describe, test, expect, beforeEach, afterEach, jest } from '@jest/globals';
 
 describe('Render Performance Tests', () => {
-    let performanceMonitor;\n    let renderSystem;\n    let benchmarkResults;\n\n    beforeEach(() => {\n        benchmarkResults = [];\n\n        performanceMonitor = {\n            metrics: new Map(),\n            timers: new Map(),\n            startTimer: function(name) {\n                this.timers.set(name, {\n                    startTime: performance.now(),\n                    endTime: null,\n                    duration: null\n                });\n            },\n            endTimer: function(name) {\n                const timer = this.timers.get(name);\n                if (timer) {\n                    timer.endTime = performance.now();\n                    timer.duration = timer.endTime - timer.startTime;\n                    \n                    // Store in metrics\n                    if (!this.metrics.has(name)) {\n                        this.metrics.set(name, []);\n                    }\n                    this.metrics.get(name).push(timer.duration);\n                    \n                    return timer.duration;\n                }\n                return null;\n            },\n            getMetrics: function(name) {\n                const measurements = this.metrics.get(name) || [];\n                if (measurements.length === 0) return null;\n                \n                const sorted = measurements.slice().sort((a, b) => a - b);\n                return {\n                    count: measurements.length,\n                    min: sorted[0],\n                    max: sorted[sorted.length - 1],\n                    average: measurements.reduce((a, b) => a + b, 0) / measurements.length,\n                    median: sorted[Math.floor(sorted.length / 2)],\n                    p95: sorted[Math.floor(sorted.length * 0.95)],\n                    p99: sorted[Math.floor(sorted.length * 0.99)]\n                };\n            },\n            benchmark: async function(name, fn, iterations = 100) {\n                const results = [];\n                \n                // Warm-up runs\n                for (let i = 0; i < 10; i++) {\n                    await fn();\n                }\n                \n                // Actual benchmark\n                for (let i = 0; i < iterations; i++) {\n                    const startTime = performance.now();\n                    await fn();\n                    const endTime = performance.now();\n                    results.push(endTime - startTime);\n                }\n                \n                const sorted = results.sort((a, b) => a - b);\n                const benchmark = {\n                    name,\n                    iterations,\n                    results: {\n                        min: sorted[0],\n                        max: sorted[sorted.length - 1],\n                        average: results.reduce((a, b) => a + b, 0) / results.length,\n                        median: sorted[Math.floor(sorted.length / 2)],\n                        p95: sorted[Math.floor(sorted.length * 0.95)],\n                        p99: sorted[Math.floor(sorted.length * 0.99)],\n                        standardDeviation: this.calculateStandardDeviation(results)\n                    }\n                };\n                \n                benchmarkResults.push(benchmark);\n                return benchmark;\n            },\n            calculateStandardDeviation: function(values) {\n                const avg = values.reduce((a, b) => a + b, 0) / values.length;\n                const squaredDiffs = values.map(value => Math.pow(value - avg, 2));\n                const avgSquaredDiff = squaredDiffs.reduce((a, b) => a + b, 0) / squaredDiffs.length;\n                return Math.sqrt(avgSquaredDiff);\n            },\n            clear: function() {\n                this.metrics.clear();\n                this.timers.clear();\n                benchmarkResults.length = 0;\n            }\n        };\n\n        renderSystem = {\n            cache: new Map(),\n            renderHistory: [],\n            renderStats: {\n                totalRenders: 0,\n                cacheHits: 0,\n                cacheMisses: 0,\n                averageRenderTime: 0\n            },\n            \n            renderMenu: async function(items, options = {}) {\n                const startTime = performance.now();\n                \n                // Simulate menu rendering with variable complexity\n                const complexity = items.length * (options.icons ? 1.5 : 1) * (options.descriptions ? 2 : 1);\n                \n                // Simulate rendering work\n                await this.simulateRenderWork(complexity);\n                \n                const endTime = performance.now();\n                const renderTime = endTime - startTime;\n                \n                this.renderStats.totalRenders++;\n                this.updateAverageRenderTime(renderTime);\n                \n                this.renderHistory.push({\n                    type: 'menu',\n                    itemCount: items.length,\n                    options,\n                    renderTime,\n                    timestamp: Date.now()\n                });\n                \n                return {\n                    rendered: true,\n                    itemCount: items.length,\n                    renderTime\n                };\n            },\n            \n            renderTable: async function(data, columns) {\n                const startTime = performance.now();\n                \n                const cacheKey = `table_${data.length}_${columns.length}`;\n                \n                if (this.cache.has(cacheKey)) {\n                    this.renderStats.cacheHits++;\n                    const cachedResult = this.cache.get(cacheKey);\n                    return {\n                        ...cachedResult,\n                        fromCache: true,\n                        renderTime: performance.now() - startTime\n                    };\n                }\n                \n                this.renderStats.cacheMisses++;\n                \n                // Simulate table rendering\n                const complexity = data.length * columns.length * 0.1;\n                await this.simulateRenderWork(complexity);\n                \n                const endTime = performance.now();\n                const renderTime = endTime - startTime;\n                \n                const result = {\n                    rendered: true,\n                    rows: data.length,\n                    columns: columns.length,\n                    renderTime\n                };\n                \n                this.cache.set(cacheKey, result);\n                this.renderStats.totalRenders++;\n                this.updateAverageRenderTime(renderTime);\n                \n                return result;\n            },\n            \n            renderProgressBar: async function(percentage, options = {}) {\n                const startTime = performance.now();\n                \n                // Simple render for progress bars\n                const complexity = options.animated ? 5 : 1;\n                await this.simulateRenderWork(complexity);\n                \n                const renderTime = performance.now() - startTime;\n                \n                this.renderStats.totalRenders++;\n                this.updateAverageRenderTime(renderTime);\n                \n                return {\n                    rendered: true,\n                    percentage,\n                    renderTime\n                };\n            },\n            \n            renderCodeBlock: async function(code, language = 'javascript') {\n                const startTime = performance.now();\n                \n                // Code highlighting is expensive\n                const complexity = code.length * 0.01 + (language === 'javascript' ? 10 : 5);\n                await this.simulateRenderWork(complexity);\n                \n                const renderTime = performance.now() - startTime;\n                \n                this.renderStats.totalRenders++;\n                this.updateAverageRenderTime(renderTime);\n                \n                return {\n                    rendered: true,\n                    codeLength: code.length,\n                    language,\n                    renderTime\n                };\n            },\n            \n            batchRender: async function(renderTasks) {\n                const startTime = performance.now();\n                const results = [];\n                \n                // Execute all renders in parallel\n                const promises = renderTasks.map(async task => {\n                    switch (task.type) {\n                        case 'menu':\n                            return await this.renderMenu(task.items, task.options);\n                        case 'table':\n                            return await this.renderTable(task.data, task.columns);\n                        case 'progress':\n                            return await this.renderProgressBar(task.percentage, task.options);\n                        case 'code':\n                            return await this.renderCodeBlock(task.code, task.language);\n                        default:\n                            return { rendered: false, error: 'Unknown render type' };\n                    }\n                });\n                \n                const renderResults = await Promise.all(promises);\n                const totalTime = performance.now() - startTime;\n                \n                return {\n                    batchSize: renderTasks.length,\n                    results: renderResults,\n                    totalTime,\n                    averagePerItem: totalTime / renderTasks.length\n                };\n            },\n            \n            simulateRenderWork: async function(complexity) {\n                // Simulate CPU-intensive rendering work\n                const baseDelay = Math.max(1, complexity * 0.5);\n                \n                // Add some randomness to simulate real-world variance\n                const variance = baseDelay * 0.2 * (Math.random() - 0.5);\n                const actualDelay = baseDelay + variance;\n                \n                if (actualDelay > 1) {\n                    await new Promise(resolve => setTimeout(resolve, actualDelay));\n                }\n                \n                // Simulate some CPU work for sub-millisecond delays\n                const iterations = Math.floor(actualDelay * 10000);\n                let result = 0;\n                for (let i = 0; i < iterations; i++) {\n                    result += Math.random();\n                }\n                \n                return result;\n            },\n            \n            updateAverageRenderTime: function(newTime) {\n                const total = this.renderStats.averageRenderTime * (this.renderStats.totalRenders - 1) + newTime;\n                this.renderStats.averageRenderTime = total / this.renderStats.totalRenders;\n            },\n            \n            clearCache: function() {\n                this.cache.clear();\n            },\n            \n            getStats: function() {\n                return {\n                    ...this.renderStats,\n                    cacheSize: this.cache.size,\n                    cacheHitRate: this.renderStats.cacheHits / (this.renderStats.cacheHits + this.renderStats.cacheMisses) || 0\n                };\n            },\n            \n            reset: function() {\n                this.cache.clear();\n                this.renderHistory = [];\n                this.renderStats = {\n                    totalRenders: 0,\n                    cacheHits: 0,\n                    cacheMisses: 0,\n                    averageRenderTime: 0\n                };\n            }\n        };\n    });\n\n    describe('Individual Component Rendering', () => {\n        test('should render simple menu within performance thresholds', async () => {\n            const menuItems = [\n                { id: 'arrays', label: 'Arrays' },\n                { id: 'lists', label: 'Linked Lists' },\n                { id: 'trees', label: 'Trees' }\n            ];\n            \n            const result = await renderSystem.renderMenu(menuItems);\n            \n            expect(result.rendered).toBe(true);\n            expect(result.renderTime).toBeLessThan(50); // 50ms threshold for simple menu\n            expect(result.itemCount).toBe(3);\n        });\n\n        test('should render complex menu with icons and descriptions', async () => {\n            const menuItems = Array.from({ length: 20 }, (_, i) => ({\n                id: `item${i}`,\n                label: `Menu Item ${i}`,\n                description: `Description for menu item ${i}`\n            }));\n            \n            const options = { icons: true, descriptions: true };\n            const result = await renderSystem.renderMenu(menuItems, options);\n            \n            expect(result.rendered).toBe(true);\n            expect(result.renderTime).toBeLessThan(200); // 200ms threshold for complex menu\n            expect(result.itemCount).toBe(20);\n        });\n\n        test('should render data tables efficiently', async () => {\n            const testData = Array.from({ length: 100 }, (_, i) => ({\n                id: i,\n                name: `Item ${i}`,\n                value: Math.random() * 1000,\n                category: `Category ${i % 5}`\n            }));\n            \n            const columns = ['id', 'name', 'value', 'category'];\n            const result = await renderSystem.renderTable(testData, columns);\n            \n            expect(result.rendered).toBe(true);\n            expect(result.renderTime).toBeLessThan(100); // 100ms threshold for 100-row table\n            expect(result.rows).toBe(100);\n            expect(result.columns).toBe(4);\n        });\n\n        test('should render progress bars quickly', async () => {\n            const result = await renderSystem.renderProgressBar(75, { animated: true });\n            \n            expect(result.rendered).toBe(true);\n            expect(result.renderTime).toBeLessThan(20); // 20ms threshold for progress bar\n            expect(result.percentage).toBe(75);\n        });\n\n        test('should render code blocks with syntax highlighting', async () => {\n            const code = `\n                function quickSort(arr) {\n                    if (arr.length <= 1) return arr;\n                    const pivot = arr[Math.floor(arr.length / 2)];\n                    const left = arr.filter(x => x < pivot);\n                    const right = arr.filter(x => x > pivot);\n                    return quickSort(left).concat(pivot, quickSort(right));\n                }\n            `;\n            \n            const result = await renderSystem.renderCodeBlock(code, 'javascript');\n            \n            expect(result.rendered).toBe(true);\n            expect(result.renderTime).toBeLessThan(150); // 150ms threshold for code highlighting\n            expect(result.language).toBe('javascript');\n            expect(result.codeLength).toBe(code.length);\n        });\n    });\n\n    describe('Batch Rendering Performance', () => {\n        test('should render multiple components efficiently in batch', async () => {\n            const renderTasks = [\n                {\n                    type: 'menu',\n                    items: [{ id: 'test', label: 'Test' }],\n                    options: {}\n                },\n                {\n                    type: 'table',\n                    data: Array.from({ length: 10 }, (_, i) => ({ id: i, name: `Item ${i}` })),\n                    columns: ['id', 'name']\n                },\n                {\n                    type: 'progress',\n                    percentage: 50,\n                    options: {}\n                },\n                {\n                    type: 'code',\n                    code: 'console.log(\"Hello World\");',\n                    language: 'javascript'\n                }\n            ];\n            \n            const result = await renderSystem.batchRender(renderTasks);\n            \n            expect(result.batchSize).toBe(4);\n            expect(result.results.every(r => r.rendered)).toBe(true);\n            expect(result.totalTime).toBeLessThan(200); // 200ms for batch of 4 items\n            expect(result.averagePerItem).toBeLessThan(50); // Average per item\n        });\n\n        test('should handle large batch renders without blocking', async () => {\n            const largeRenderTasks = Array.from({ length: 50 }, (_, i) => ({\n                type: 'menu',\n                items: [{ id: `item${i}`, label: `Item ${i}` }],\n                options: {}\n            }));\n            \n            const startTime = performance.now();\n            const result = await renderSystem.batchRender(largeRenderTasks);\n            const totalTime = performance.now() - startTime;\n            \n            expect(result.batchSize).toBe(50);\n            expect(totalTime).toBeLessThan(1000); // 1 second for 50 renders\n        });\n    });\n\n    describe('Caching Performance', () => {\n        test('should improve performance with caching', async () => {\n            const testData = Array.from({ length: 50 }, (_, i) => ({ id: i, value: i }));\n            const columns = ['id', 'value'];\n            \n            // First render (cache miss)\n            const firstRender = await renderSystem.renderTable(testData, columns);\n            expect(firstRender.fromCache).toBeUndefined();\n            \n            // Second render (cache hit)\n            const secondRender = await renderSystem.renderTable(testData, columns);\n            expect(secondRender.fromCache).toBe(true);\n            expect(secondRender.renderTime).toBeLessThan(firstRender.renderTime);\n        });\n\n        test('should track cache hit rates', async () => {\n            const testData = [{ id: 1, name: 'Test' }];\n            const columns = ['id', 'name'];\n            \n            // Generate cache misses and hits\n            await renderSystem.renderTable(testData, columns); // miss\n            await renderSystem.renderTable(testData, columns); // hit\n            await renderSystem.renderTable(testData, columns); // hit\n            \n            const stats = renderSystem.getStats();\n            expect(stats.cacheHits).toBe(2);\n            expect(stats.cacheMisses).toBe(1);\n            expect(stats.cacheHitRate).toBeCloseTo(0.67, 2);\n        });\n    });\n\n    describe('Performance Benchmarking', () => {\n        test('should benchmark menu rendering performance', async () => {\n            const menuItems = Array.from({ length: 10 }, (_, i) => ({\n                id: `item${i}`,\n                label: `Menu Item ${i}`\n            }));\n            \n            const benchmark = await performanceMonitor.benchmark(\n                'menu-render-10-items',\n                () => renderSystem.renderMenu(menuItems),\n                50\n            );\n            \n            expect(benchmark.iterations).toBe(50);\n            expect(benchmark.results.average).toBeLessThan(100); // Average should be under 100ms\n            expect(benchmark.results.p95).toBeLessThan(150); // 95th percentile under 150ms\n        });\n\n        test('should benchmark table rendering with different sizes', async () => {\n            const testSizes = [10, 50, 100, 500];\n            const benchmarks = [];\n            \n            for (const size of testSizes) {\n                const testData = Array.from({ length: size }, (_, i) => ({\n                    id: i,\n                    name: `Item ${i}`,\n                    value: Math.random() * 1000\n                }));\n                \n                const columns = ['id', 'name', 'value'];\n                const benchmark = await performanceMonitor.benchmark(\n                    `table-render-${size}-rows`,\n                    () => {\n                        renderSystem.clearCache(); // Force cache miss for consistent benchmarking\n                        return renderSystem.renderTable(testData, columns);\n                    },\n                    20\n                );\n                \n                benchmarks.push({ size, benchmark });\n            }\n            \n            // Verify performance scales reasonably with data size\n            for (let i = 1; i < benchmarks.length; i++) {\n                const current = benchmarks[i];\n                const previous = benchmarks[i - 1];\n                \n                // Performance should scale sub-linearly (not grow faster than data size)\n                const dataRatio = current.size / previous.size;\n                const performanceRatio = current.benchmark.results.average / previous.benchmark.results.average;\n                \n                expect(performanceRatio).toBeLessThan(dataRatio * 1.5); // Allow 50% overhead for scaling\n            }\n        });\n\n        test('should maintain consistent performance over time', async () => {\n            const menuItems = Array.from({ length: 5 }, (_, i) => ({\n                id: `item${i}`,\n                label: `Item ${i}`\n            }));\n            \n            // Run multiple benchmark sessions\n            const benchmarks = [];\n            for (let session = 0; session < 5; session++) {\n                const benchmark = await performanceMonitor.benchmark(\n                    `consistency-test-session-${session}`,\n                    () => renderSystem.renderMenu(menuItems),\n                    20\n                );\n                benchmarks.push(benchmark.results.average);\n            }\n            \n            // Check performance consistency\n            const averageTime = benchmarks.reduce((a, b) => a + b, 0) / benchmarks.length;\n            const maxDeviation = Math.max(...benchmarks.map(time => Math.abs(time - averageTime)));\n            \n            // Maximum deviation should be within 50% of average\n            expect(maxDeviation).toBeLessThan(averageTime * 0.5);\n        });\n    });\n\n    describe('Performance Regression Detection', () => {\n        test('should detect performance regressions', async () => {\n            const baselineThresholds = {\n                'simple-menu': 30, // ms\n                'complex-menu': 150,\n                'small-table': 50,\n                'large-table': 300,\n                'progress-bar': 20,\n                'code-block': 100\n            };\n            \n            // Test each component type\n            const simpleMenuTime = (await renderSystem.renderMenu([{ id: 'test', label: 'Test' }])).renderTime;\n            expect(simpleMenuTime).toBeLessThan(baselineThresholds['simple-menu']);\n            \n            const complexMenuItems = Array.from({ length: 20 }, (_, i) => ({\n                id: `item${i}`,\n                label: `Item ${i}`,\n                description: `Description ${i}`\n            }));\n            const complexMenuTime = (await renderSystem.renderMenu(complexMenuItems, { icons: true, descriptions: true })).renderTime;\n            expect(complexMenuTime).toBeLessThan(baselineThresholds['complex-menu']);\n            \n            const smallTableData = Array.from({ length: 10 }, (_, i) => ({ id: i, name: `Item ${i}` }));\n            const smallTableTime = (await renderSystem.renderTable(smallTableData, ['id', 'name'])).renderTime;\n            expect(smallTableTime).toBeLessThan(baselineThresholds['small-table']);\n        });\n\n        test('should provide performance metrics for monitoring', async () => {\n            // Generate some renders\n            await renderSystem.renderMenu([{ id: 'test', label: 'Test' }]);\n            await renderSystem.renderTable([{ id: 1, name: 'Test' }], ['id', 'name']);\n            await renderSystem.renderProgressBar(50);\n            \n            const stats = renderSystem.getStats();\n            \n            expect(stats.totalRenders).toBeGreaterThan(0);\n            expect(stats.averageRenderTime).toBeGreaterThan(0);\n            expect(stats.cacheSize).toBeGreaterThanOrEqual(0);\n            expect(stats.cacheHitRate).toBeGreaterThanOrEqual(0);\n            expect(stats.cacheHitRate).toBeLessThanOrEqual(1);\n        });\n    });\n\n    describe('Memory Performance', () => {\n        test('should not leak memory during repeated renders', async () => {\n            const initialCacheSize = renderSystem.cache.size;\n            \n            // Perform many renders with same data (should use cache)\n            const testData = [{ id: 1, name: 'Test' }];\n            const columns = ['id', 'name'];\n            \n            for (let i = 0; i < 100; i++) {\n                await renderSystem.renderTable(testData, columns);\n            }\n            \n            const finalCacheSize = renderSystem.cache.size;\n            \n            // Cache should not grow unbounded\n            expect(finalCacheSize - initialCacheSize).toBeLessThan(10);\n        });\n\n        test('should manage render history efficiently', async () => {\n            const initialHistoryLength = renderSystem.renderHistory.length;\n            \n            // Generate many renders\n            for (let i = 0; i < 50; i++) {\n                await renderSystem.renderMenu([{ id: `item${i}`, label: `Item ${i}` }]);\n            }\n            \n            const finalHistoryLength = renderSystem.renderHistory.length;\n            \n            expect(finalHistoryLength).toBe(initialHistoryLength + 50);\n            expect(renderSystem.renderHistory).toHaveLength(finalHistoryLength);\n        });\n    });\n});"
+    let performanceMonitor;
+    let renderSystem;
+    let benchmarkResults;
+
+    beforeEach(() => {
+        benchmarkResults = [];
+
+        performanceMonitor = {
+            metrics: new Map(),
+            timers: new Map(),
+            startTimer: function(name) {
+                this.timers.set(name, {
+                    startTime: performance.now(),
+                    endTime: null,
+                    duration: null
+                });
+            },
+            endTimer: function(name) {
+                const timer = this.timers.get(name);
+                if (timer) {
+                    timer.endTime = performance.now();
+                    timer.duration = timer.endTime - timer.startTime;
+                    
+                    // Store in metrics
+                    if (!this.metrics.has(name)) {
+                        this.metrics.set(name, []);
+                    }
+                    this.metrics.get(name).push(timer.duration);
+                    
+                    return timer.duration;
+                }
+                return null;
+            },
+            getMetrics: function(name) {
+                const measurements = this.metrics.get(name) || [];
+                if (measurements.length === 0) return null;
+                
+                const sorted = measurements.slice().sort((a, b) => a - b);
+                return {
+                    count: measurements.length,
+                    min: sorted[0],
+                    max: sorted[sorted.length - 1],
+                    average: measurements.reduce((a, b) => a + b, 0) / measurements.length,
+                    median: sorted[Math.floor(sorted.length / 2)],
+                    p95: sorted[Math.floor(sorted.length * 0.95)],
+                    p99: sorted[Math.floor(sorted.length * 0.99)]
+                };
+            },
+            benchmark: async function(name, fn, iterations = 100) {
+                const results = [];
+                
+                // Warm-up runs
+                for (let i = 0; i < 10; i++) {
+                    await fn();
+                }
+                
+                // Actual benchmark
+                for (let i = 0; i < iterations; i++) {
+                    const startTime = performance.now();
+                    await fn();
+                    const endTime = performance.now();
+                    results.push(endTime - startTime);
+                }
+                
+                const sorted = results.sort((a, b) => a - b);
+                const benchmark = {
+                    name,
+                    iterations,
+                    results: {
+                        min: sorted[0],
+                        max: sorted[sorted.length - 1],
+                        average: results.reduce((a, b) => a + b, 0) / results.length,
+                        median: sorted[Math.floor(sorted.length / 2)],
+                        p95: sorted[Math.floor(sorted.length * 0.95)],
+                        p99: sorted[Math.floor(sorted.length * 0.99)],
+                        standardDeviation: this.calculateStandardDeviation(results)
+                    }
+                };
+                
+                benchmarkResults.push(benchmark);
+                return benchmark;
+            },
+            calculateStandardDeviation: function(values) {
+                const avg = values.reduce((a, b) => a + b, 0) / values.length;
+                const squaredDiffs = values.map(value => Math.pow(value - avg, 2));
+                const avgSquaredDiff = squaredDiffs.reduce((a, b) => a + b, 0) / squaredDiffs.length;
+                return Math.sqrt(avgSquaredDiff);
+            },
+            clear: function() {
+                this.metrics.clear();
+                this.timers.clear();
+                benchmarkResults.length = 0;
+            }
+        };
+
+        renderSystem = {
+            cache: new Map(),
+            renderHistory: [],
+            renderStats: {
+                totalRenders: 0,
+                cacheHits: 0,
+                cacheMisses: 0,
+                averageRenderTime: 0
+            },
+            
+            renderMenu: async function(items, options = {}) {
+                const startTime = performance.now();
+                
+                // Simulate menu rendering with variable complexity
+                const complexity = items.length * (options.icons ? 1.5 : 1) * (options.descriptions ? 2 : 1);
+                
+                // Simulate rendering work
+                await this.simulateRenderWork(complexity);
+                
+                const endTime = performance.now();
+                const renderTime = endTime - startTime;
+                
+                this.renderStats.totalRenders++;
+                this.updateAverageRenderTime(renderTime);
+                
+                this.renderHistory.push({
+                    type: 'menu',
+                    itemCount: items.length,
+                    options,
+                    renderTime,
+                    timestamp: Date.now()
+                });
+                
+                return {
+                    rendered: true,
+                    itemCount: items.length,
+                    renderTime
+                };
+            },
+            
+            renderTable: async function(data, columns) {
+                const startTime = performance.now();
+                
+                const cacheKey = `table_${data.length}_${columns.length}`;
+                
+                if (this.cache.has(cacheKey)) {
+                    this.renderStats.cacheHits++;
+                    const cachedResult = this.cache.get(cacheKey);
+                    return {
+                        ...cachedResult,
+                        fromCache: true,
+                        renderTime: performance.now() - startTime
+                    };
+                }
+                
+                this.renderStats.cacheMisses++;
+                
+                // Simulate table rendering
+                const complexity = data.length * columns.length * 0.1;
+                await this.simulateRenderWork(complexity);
+                
+                const endTime = performance.now();
+                const renderTime = endTime - startTime;
+                
+                const result = {
+                    rendered: true,
+                    rows: data.length,
+                    columns: columns.length,
+                    renderTime
+                };
+                
+                this.cache.set(cacheKey, result);
+                this.renderStats.totalRenders++;
+                this.updateAverageRenderTime(renderTime);
+                
+                return result;
+            },
+            
+            renderProgressBar: async function(percentage, options = {}) {
+                const startTime = performance.now();
+                
+                // Simple render for progress bars
+                const complexity = options.animated ? 5 : 1;
+                await this.simulateRenderWork(complexity);
+                
+                const renderTime = performance.now() - startTime;
+                
+                this.renderStats.totalRenders++;
+                this.updateAverageRenderTime(renderTime);
+                
+                return {
+                    rendered: true,
+                    percentage,
+                    renderTime
+                };
+            },
+            
+            renderCodeBlock: async function(code, language = 'javascript') {
+                const startTime = performance.now();
+                
+                // Code highlighting is expensive
+                const complexity = code.length * 0.01 + (language === 'javascript' ? 10 : 5);
+                await this.simulateRenderWork(complexity);
+                
+                const renderTime = performance.now() - startTime;
+                
+                this.renderStats.totalRenders++;
+                this.updateAverageRenderTime(renderTime);
+                
+                return {
+                    rendered: true,
+                    codeLength: code.length,
+                    language,
+                    renderTime
+                };
+            },
+            
+            batchRender: async function(renderTasks) {
+                const startTime = performance.now();
+                const results = [];
+                
+                // Execute all renders in parallel
+                const promises = renderTasks.map(async task => {
+                    switch (task.type) {
+                        case 'menu':
+                            return await this.renderMenu(task.items, task.options);
+                        case 'table':
+                            return await this.renderTable(task.data, task.columns);
+                        case 'progress':
+                            return await this.renderProgressBar(task.percentage, task.options);
+                        case 'code':
+                            return await this.renderCodeBlock(task.code, task.language);
+                        default:
+                            return { rendered: false, error: 'Unknown render type' };
+                    }
+                });
+                
+                const renderResults = await Promise.all(promises);
+                const totalTime = performance.now() - startTime;
+                
+                return {
+                    batchSize: renderTasks.length,
+                    results: renderResults,
+                    totalTime,
+                    averagePerItem: totalTime / renderTasks.length
+                };
+            },
+            
+            simulateRenderWork: async function(complexity) {
+                // Simulate CPU-intensive rendering work
+                const baseDelay = Math.max(1, complexity * 0.5);
+                
+                // Add some randomness to simulate real-world variance
+                const variance = baseDelay * 0.2 * (Math.random() - 0.5);
+                const actualDelay = baseDelay + variance;
+                
+                if (actualDelay > 1) {
+                    await new Promise(resolve => setTimeout(resolve, actualDelay));
+                }
+                
+                // Simulate some CPU work for sub-millisecond delays
+                const iterations = Math.floor(actualDelay * 10000);
+                let result = 0;
+                for (let i = 0; i < iterations; i++) {
+                    result += Math.random();
+                }
+                
+                return result;
+            },
+            
+            updateAverageRenderTime: function(newTime) {
+                const total = this.renderStats.averageRenderTime * (this.renderStats.totalRenders - 1) + newTime;
+                this.renderStats.averageRenderTime = total / this.renderStats.totalRenders;
+            },
+            
+            clearCache: function() {
+                this.cache.clear();
+            },
+            
+            getStats: function() {
+                return {
+                    ...this.renderStats,
+                    cacheSize: this.cache.size,
+                    cacheHitRate: this.renderStats.cacheHits / (this.renderStats.cacheHits + this.renderStats.cacheMisses) || 0
+                };
+            },
+            
+            reset: function() {
+                this.cache.clear();
+                this.renderHistory = [];
+                this.renderStats = {
+                    totalRenders: 0,
+                    cacheHits: 0,
+                    cacheMisses: 0,
+                    averageRenderTime: 0
+                };
+            }
+        };
+    });
+
+    describe('Individual Component Rendering', () => {
+        test('should render simple menu within performance thresholds', async () => {
+            const menuItems = [
+                { id: 'arrays', label: 'Arrays' },
+                { id: 'lists', label: 'Linked Lists' },
+                { id: 'trees', label: 'Trees' }
+            ];
+            
+            const result = await renderSystem.renderMenu(menuItems);
+            
+            expect(result.rendered).toBe(true);
+            expect(result.renderTime).toBeLessThan(50); // 50ms threshold for simple menu
+            expect(result.itemCount).toBe(3);
+        });
+
+        test('should render complex menu with icons and descriptions', async () => {
+            const menuItems = Array.from({ length: 20 }, (_, i) => ({
+                id: `item${i}`,
+                label: `Menu Item ${i}`,
+                description: `Description for menu item ${i}`
+            }));
+            
+            const options = { icons: true, descriptions: true };
+            const result = await renderSystem.renderMenu(menuItems, options);
+            
+            expect(result.rendered).toBe(true);
+            expect(result.renderTime).toBeLessThan(200); // 200ms threshold for complex menu
+            expect(result.itemCount).toBe(20);
+        });
+
+        test('should render data tables efficiently', async () => {
+            const testData = Array.from({ length: 100 }, (_, i) => ({
+                id: i,
+                name: `Item ${i}`,
+                value: Math.random() * 1000,
+                category: `Category ${i % 5}`
+            }));
+            
+            const columns = ['id', 'name', 'value', 'category'];
+            const result = await renderSystem.renderTable(testData, columns);
+            
+            expect(result.rendered).toBe(true);
+            expect(result.renderTime).toBeLessThan(100); // 100ms threshold for 100-row table
+            expect(result.rows).toBe(100);
+            expect(result.columns).toBe(4);
+        });
+
+        test('should render progress bars quickly', async () => {
+            const result = await renderSystem.renderProgressBar(75, { animated: true });
+            
+            expect(result.rendered).toBe(true);
+            expect(result.renderTime).toBeLessThan(20); // 20ms threshold for progress bar
+            expect(result.percentage).toBe(75);
+        });
+
+        test('should render code blocks with syntax highlighting', async () => {
+            const code = `
+                function quickSort(arr) {
+                    if (arr.length <= 1) return arr;
+                    const pivot = arr[Math.floor(arr.length / 2)];
+                    const left = arr.filter(x => x < pivot);
+                    const right = arr.filter(x => x > pivot);
+                    return quickSort(left).concat(pivot, quickSort(right));
+                }
+            `;
+            
+            const result = await renderSystem.renderCodeBlock(code, 'javascript');
+            
+            expect(result.rendered).toBe(true);
+            expect(result.renderTime).toBeLessThan(150); // 150ms threshold for code highlighting
+            expect(result.language).toBe('javascript');
+            expect(result.codeLength).toBe(code.length);
+        });
+    });
+
+    describe('Batch Rendering Performance', () => {
+        test('should render multiple components efficiently in batch', async () => {
+            const renderTasks = [
+                {
+                    type: 'menu',
+                    items: [{ id: 'test', label: 'Test' }],
+                    options: {}
+                },
+                {
+                    type: 'table',
+                    data: Array.from({ length: 10 }, (_, i) => ({ id: i, name: `Item ${i}` })),
+                    columns: ['id', 'name']
+                },
+                {
+                    type: 'progress',
+                    percentage: 50,
+                    options: {}
+                },
+                {
+                    type: 'code',
+                    code: 'console.log(\"Hello World\");',
+                    language: 'javascript'
+                }
+            ];
+            
+            const result = await renderSystem.batchRender(renderTasks);
+            
+            expect(result.batchSize).toBe(4);
+            expect(result.results.every(r => r.rendered)).toBe(true);
+            expect(result.totalTime).toBeLessThan(200); // 200ms for batch of 4 items
+            expect(result.averagePerItem).toBeLessThan(50); // Average per item
+        });
+
+        test('should handle large batch renders without blocking', async () => {
+            const largeRenderTasks = Array.from({ length: 50 }, (_, i) => ({
+                type: 'menu',
+                items: [{ id: `item${i}`, label: `Item ${i}` }],
+                options: {}
+            }));
+            
+            const startTime = performance.now();
+            const result = await renderSystem.batchRender(largeRenderTasks);
+            const totalTime = performance.now() - startTime;
+            
+            expect(result.batchSize).toBe(50);
+            expect(totalTime).toBeLessThan(1000); // 1 second for 50 renders
+        });
+    });
+
+    describe('Caching Performance', () => {
+        test('should improve performance with caching', async () => {
+            const testData = Array.from({ length: 50 }, (_, i) => ({ id: i, value: i }));
+            const columns = ['id', 'value'];
+            
+            // First render (cache miss)
+            const firstRender = await renderSystem.renderTable(testData, columns);
+            expect(firstRender.fromCache).toBeUndefined();
+            
+            // Second render (cache hit)
+            const secondRender = await renderSystem.renderTable(testData, columns);
+            expect(secondRender.fromCache).toBe(true);
+            expect(secondRender.renderTime).toBeLessThan(firstRender.renderTime);
+        });
+
+        test('should track cache hit rates', async () => {
+            const testData = [{ id: 1, name: 'Test' }];
+            const columns = ['id', 'name'];
+            
+            // Generate cache misses and hits
+            await renderSystem.renderTable(testData, columns); // miss
+            await renderSystem.renderTable(testData, columns); // hit
+            await renderSystem.renderTable(testData, columns); // hit
+            
+            const stats = renderSystem.getStats();
+            expect(stats.cacheHits).toBe(2);
+            expect(stats.cacheMisses).toBe(1);
+            expect(stats.cacheHitRate).toBeCloseTo(0.67, 2);
+        });
+    });
+
+    describe('Performance Benchmarking', () => {
+        test('should benchmark menu rendering performance', async () => {
+            const menuItems = Array.from({ length: 10 }, (_, i) => ({
+                id: `item${i}`,
+                label: `Menu Item ${i}`
+            }));
+            
+            const benchmark = await performanceMonitor.benchmark(
+                'menu-render-10-items',
+                () => renderSystem.renderMenu(menuItems),
+                50
+            );
+            
+            expect(benchmark.iterations).toBe(50);
+            expect(benchmark.results.average).toBeLessThan(100); // Average should be under 100ms
+            expect(benchmark.results.p95).toBeLessThan(150); // 95th percentile under 150ms
+        });
+
+        test('should benchmark table rendering with different sizes', async () => {
+            const testSizes = [10, 50, 100, 500];
+            const benchmarks = [];
+            
+            for (const size of testSizes) {
+                const testData = Array.from({ length: size }, (_, i) => ({
+                    id: i,
+                    name: `Item ${i}`,
+                    value: Math.random() * 1000
+                }));
+                
+                const columns = ['id', 'name', 'value'];
+                const benchmark = await performanceMonitor.benchmark(
+                    `table-render-${size}-rows`,
+                    () => {
+                        renderSystem.clearCache(); // Force cache miss for consistent benchmarking
+                        return renderSystem.renderTable(testData, columns);
+                    },
+                    20
+                );
+                
+                benchmarks.push({ size, benchmark });
+            }
+            
+            // Verify performance scales reasonably with data size
+            for (let i = 1; i < benchmarks.length; i++) {
+                const current = benchmarks[i];
+                const previous = benchmarks[i - 1];
+                
+                // Performance should scale sub-linearly (not grow faster than data size)
+                const dataRatio = current.size / previous.size;
+                const performanceRatio = current.benchmark.results.average / previous.benchmark.results.average;
+                
+                expect(performanceRatio).toBeLessThan(dataRatio * 1.5); // Allow 50% overhead for scaling
+            }
+        });
+
+        test('should maintain consistent performance over time', async () => {
+            const menuItems = Array.from({ length: 5 }, (_, i) => ({
+                id: `item${i}`,
+                label: `Item ${i}`
+            }));
+            
+            // Run multiple benchmark sessions
+            const benchmarks = [];
+            for (let session = 0; session < 5; session++) {
+                const benchmark = await performanceMonitor.benchmark(
+                    `consistency-test-session-${session}`,
+                    () => renderSystem.renderMenu(menuItems),
+                    20
+                );
+                benchmarks.push(benchmark.results.average);
+            }
+            
+            // Check performance consistency
+            const averageTime = benchmarks.reduce((a, b) => a + b, 0) / benchmarks.length;
+            const maxDeviation = Math.max(...benchmarks.map(time => Math.abs(time - averageTime)));
+            
+            // Maximum deviation should be within 50% of average
+            expect(maxDeviation).toBeLessThan(averageTime * 0.5);
+        });
+    });
+
+    describe('Performance Regression Detection', () => {
+        test('should detect performance regressions', async () => {
+            const baselineThresholds = {
+                'simple-menu': 30, // ms
+                'complex-menu': 150,
+                'small-table': 50,
+                'large-table': 300,
+                'progress-bar': 20,
+                'code-block': 100
+            };
+            
+            // Test each component type
+            const simpleMenuTime = (await renderSystem.renderMenu([{ id: 'test', label: 'Test' }])).renderTime;
+            expect(simpleMenuTime).toBeLessThan(baselineThresholds['simple-menu']);
+            
+            const complexMenuItems = Array.from({ length: 20 }, (_, i) => ({
+                id: `item${i}`,
+                label: `Item ${i}`,
+                description: `Description ${i}`
+            }));
+            const complexMenuTime = (await renderSystem.renderMenu(complexMenuItems, { icons: true, descriptions: true })).renderTime;
+            expect(complexMenuTime).toBeLessThan(baselineThresholds['complex-menu']);
+            
+            const smallTableData = Array.from({ length: 10 }, (_, i) => ({ id: i, name: `Item ${i}` }));
+            const smallTableTime = (await renderSystem.renderTable(smallTableData, ['id', 'name'])).renderTime;
+            expect(smallTableTime).toBeLessThan(baselineThresholds['small-table']);
+        });
+
+        test('should provide performance metrics for monitoring', async () => {
+            // Generate some renders
+            await renderSystem.renderMenu([{ id: 'test', label: 'Test' }]);
+            await renderSystem.renderTable([{ id: 1, name: 'Test' }], ['id', 'name']);
+            await renderSystem.renderProgressBar(50);
+            
+            const stats = renderSystem.getStats();
+            
+            expect(stats.totalRenders).toBeGreaterThan(0);
+            expect(stats.averageRenderTime).toBeGreaterThan(0);
+            expect(stats.cacheSize).toBeGreaterThanOrEqual(0);
+            expect(stats.cacheHitRate).toBeGreaterThanOrEqual(0);
+            expect(stats.cacheHitRate).toBeLessThanOrEqual(1);
+        });
+    });
+
+    describe('Memory Performance', () => {
+        test('should not leak memory during repeated renders', async () => {
+            const initialCacheSize = renderSystem.cache.size;
+            
+            // Perform many renders with same data (should use cache)
+            const testData = [{ id: 1, name: 'Test' }];
+            const columns = ['id', 'name'];
+            
+            for (let i = 0; i < 100; i++) {
+                await renderSystem.renderTable(testData, columns);
+            }
+            
+            const finalCacheSize = renderSystem.cache.size;
+            
+            // Cache should not grow unbounded
+            expect(finalCacheSize - initialCacheSize).toBeLessThan(10);
+        });
+
+        test('should manage render history efficiently', async () => {
+            const initialHistoryLength = renderSystem.renderHistory.length;
+            
+            // Generate many renders
+            for (let i = 0; i < 50; i++) {
+                await renderSystem.renderMenu([{ id: `item${i}`, label: `Item ${i}` }]);
+            }
+            
+            const finalHistoryLength = renderSystem.renderHistory.length;
+            
+            expect(finalHistoryLength).toBe(initialHistoryLength + 50);
+            expect(renderSystem.renderHistory).toHaveLength(finalHistoryLength);
+        });
+    });
+});"
