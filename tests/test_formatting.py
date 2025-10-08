@@ -5,7 +5,8 @@ import sys
 import os
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from src.ui.formatter import TerminalFormatter
+# DEPRECATED: Migrated to compatibility layer - use FormatterFactory or UnifiedFormatter directly
+from src.ui.formatter_compat import TerminalFormatter
 from src.commands.curriculum_commands import CurriculumShowCommand
 
 def test_curriculum_formatting():

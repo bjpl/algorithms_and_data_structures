@@ -14,7 +14,8 @@ import colorama
 colorama.init(autoreset=False, convert=True, strip=False)
 
 # Now import our formatter
-from src.ui.windows_formatter import WindowsFormatter, WindowsColor
+# DEPRECATED: Migrated to compatibility layer - use FormatterFactory or UnifiedFormatter directly
+from src.ui.formatter_compat import WindowsFormatter, WindowsColor
 
 def test_colors():
     """Test all color outputs"""

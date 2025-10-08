@@ -7,7 +7,8 @@ import sys
 import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from src.ui.formatter import TerminalFormatter
+# DEPRECATED: Migrated to compatibility layer - use FormatterFactory or UnifiedFormatter directly
+from src.ui.formatter_compat import TerminalFormatter
 
 def test_formatter_no_duplicates():
     """Test that formatter methods don't produce duplicate output"""

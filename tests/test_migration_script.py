@@ -45,7 +45,8 @@ class TestFormatterMigrator:
         content = '''#!/usr/bin/env python3
 """Sample test file"""
 
-from src.ui.formatter import TerminalFormatter, Color
+# DEPRECATED: Migrated to compatibility layer - use FormatterFactory or UnifiedFormatter directly
+from src.ui.formatter_compat import TerminalFormatter, Color
 
 def test_something():
     formatter = TerminalFormatter()

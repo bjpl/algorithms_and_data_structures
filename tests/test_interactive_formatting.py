@@ -6,7 +6,8 @@ import os
 import asyncio
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from src.ui.formatter import TerminalFormatter
+# DEPRECATED: Migrated to compatibility layer - use FormatterFactory or UnifiedFormatter directly
+from src.ui.formatter_compat import TerminalFormatter
 from src.ui.interactive import InteractiveSession
 
 async def test_interactive_formatting():

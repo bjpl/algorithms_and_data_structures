@@ -9,7 +9,8 @@ from pathlib import Path
 # Add parent to path
 sys.path.insert(0, str(Path(__file__).parent))
 
-from src.ui.windows_formatter import WindowsFormatter
+# DEPRECATED: Migrated to compatibility layer - use FormatterFactory or UnifiedFormatter directly
+from src.ui.formatter_compat import WindowsFormatter
 
 def test_display():
     """Test the Windows formatter with sample content"""

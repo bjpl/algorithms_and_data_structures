@@ -12,7 +12,8 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.cli import CurriculumCLI
 from src.notes_manager import NotesManager
-from src.ui.formatter import TerminalFormatter
+# DEPRECATED: Migrated to compatibility layer - use FormatterFactory or UnifiedFormatter directly
+from src.ui.formatter_compat import TerminalFormatter
 
 def test_all_features():
     """Test all major features"""

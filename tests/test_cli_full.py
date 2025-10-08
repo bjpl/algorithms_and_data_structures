@@ -20,7 +20,8 @@ import colorama
 colorama.init(autoreset=False, convert=True, strip=False)
 
 # Import modules to test
-from src.ui.windows_formatter import WindowsFormatter, WindowsColor
+# DEPRECATED: Migrated to compatibility layer - use FormatterFactory or UnifiedFormatter directly
+from src.ui.formatter_compat import WindowsFormatter, WindowsColor
 from src.ui.lesson_display import LessonDisplay
 from src.notes_manager import NotesManager
 from src.cli import CurriculumCLI

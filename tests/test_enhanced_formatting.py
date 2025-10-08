@@ -7,7 +7,8 @@ import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 
-from src.ui.windows_formatter import WindowsFormatter
+# DEPRECATED: Migrated to compatibility layer - use FormatterFactory or UnifiedFormatter directly
+from src.ui.formatter_compat import WindowsFormatter
 from src.ui.enhanced_lesson_formatter import EnhancedLessonFormatter
 
 def test_enhanced_formatting():
