@@ -6,6 +6,7 @@ import tempfile
 import subprocess
 import json
 import time
+from datetime import datetime
 from pathlib import Path
 from unittest.mock import Mock, patch, AsyncMock
 from typing import List, Dict, Any
@@ -18,9 +19,13 @@ try:
     from src.services.curriculum_service import CurriculumService
     from src.services.content_service import ContentService
 except ImportError:
-    # For isolated testing
+    # For isolated testing - set all imports to None/Mock
     cli_main = None
     CLIEngine = None
+    CLIConfig = None
+    DatabaseManager = None
+    CurriculumService = None
+    ContentService = None
 
 
 @pytest.mark.integration

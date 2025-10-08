@@ -3,16 +3,21 @@ Curriculum Service - Business logic for curriculum operations
 Manages learning paths, topics, and educational content structure.
 """
 
+from __future__ import annotations  # Defer type hint evaluation
+
 import json
 import logging
 from typing import List, Dict, Any, Optional, Set
 from dataclasses import asdict
 from datetime import datetime, timedelta
 
-from models.content_models import Topic, Problem, Concept, LearningPath
-from models.user_profile import UserProfile, UserProgress
-from data.database_manager import DatabaseManager
-from utils.logging_config import get_logger
+# TODO: Fix imports - these modules don't exist in current structure
+# from models.content_models import Topic, Problem, Concept, LearningPath
+# from models.user_profile import UserProfile, UserProgress
+# from data.database_manager import DatabaseManager
+from ..utils.logging_config import get_logger
+from ..persistence.db_manager import DatabaseManager
+from ..models import UserProfile, Progress
 
 
 class CurriculumService:

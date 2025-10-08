@@ -1,3 +1,5 @@
+from __future__ import annotations  # Defer type hint evaluation - MUST BE FIRST
+
 """
 Central Application class that coordinates all components.
 Single source of truth for application state and lifecycle.
@@ -11,9 +13,14 @@ from enum import Enum
 
 from ..config import Config
 from ..services.curriculum_service import CurriculumService
-from ..services.progress_service import ProgressService
-from ..services.notes_service import NotesService
+# TODO: These services don't exist yet - commented out to fix imports
+# from ..services.progress_service import ProgressService
+# from ..services.notes_service import NotesService
 from ..persistence.db_manager import DatabaseManager
+
+# Temporary placeholders
+ProgressService = type('ProgressService', (), {})
+NotesService = type('NotesService', (), {})
 
 
 class ApplicationState(Enum):

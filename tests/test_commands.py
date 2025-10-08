@@ -29,9 +29,19 @@ try:
         BackupCommand, RestoreCommand, MigrateCommand
     )
 except ImportError:
-    # For isolated testing
-    BaseCommand = None
-    CommandResult = None
+    # For isolated testing - set all imports to None/Mock
+    BaseCommand = type('BaseCommand', (), {'__init__': lambda self: None})
+    CommandResult = type('CommandResult', (), {})
+    CommandCategory = type('CommandCategory', (), {})
+    CommandMetadata = type('CommandMetadata', (), {})
+    AsyncCommand = type('AsyncCommand', (), {})
+    SyncCommand = type('SyncCommand', (), {})
+    CompositeCommand = type('CompositeCommand', (), {})
+    CompositeBECommand = type('CompositeBECommand', (), {})
+    # Mock all specific command classes
+    ListTopicsCommand = ShowTopicCommand = SearchTopicsCommand = None
+    CreateContentCommand = EditContentCommand = DeleteContentCommand = None
+    ShowProgressCommand = UpdateProgressCommand = ExportProgressCommand = None
 
 
 # Mock implementations for testing

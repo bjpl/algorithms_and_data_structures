@@ -663,4 +663,4 @@ describe('Command Execution Integration Tests', () => {
             expect(progress.completed).toBe(true);
         });
     });
-});"
+});

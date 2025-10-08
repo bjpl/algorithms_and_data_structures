@@ -15,9 +15,18 @@ try:
     from src.ui.formatter import TerminalFormatter
     from src.core.exceptions import CLIError, CommandNotFoundError
 except ImportError:
-    # For isolated testing
+    # For isolated testing - set all imports to None/Mock
     CLIEngine = None
     CLIContext = None
+    main = None
+    CLIConfig = None
+    BaseCommand = type('BaseCommand', (), {'__init__': lambda self: None})
+    CommandResult = type('CommandResult', (), {})
+    CommandCategory = type('CommandCategory', (), {})
+    CommandMetadata = type('CommandMetadata', (), {})
+    TerminalFormatter = type('TerminalFormatter', (), {})
+    CLIError = Exception
+    CommandNotFoundError = Exception
 
 
 class MockCommand(BaseCommand):

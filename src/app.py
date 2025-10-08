@@ -18,9 +18,12 @@ from rich.layout import Layout
 from rich.live import Live
 from rich import print as rprint
 
-from models.user_profile import UserProfile, UserSession, UserProgress
-from models.content_models import Topic, Problem, Concept
-from models.analytics_models import PerformanceMetrics, LearningAnalytics
+# TODO: Fix imports - some modules don't exist in current structure
+# from models.analytics_models import PerformanceMetrics, LearningAnalytics
+from .models import UserProfile, Progress, Content
+# Placeholder for missing models - using available ones
+UserSession = dict  # Temporary placeholder
+UserProgress = Progress  # Using existing Progress model
 from services.curriculum_service import CurriculumService
 from services.content_service import ContentService
 from services.analytics_service import AnalyticsService
