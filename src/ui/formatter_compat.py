@@ -51,8 +51,8 @@ class TerminalFormatter(UnifiedFormatter):
 
     # Legacy method aliases for backward compatibility
     def _colorize(self, text: str, color: Color) -> str:
-        """Legacy alias for color() method"""
-        return self.color(text, color)
+        """Legacy alias for colorize() method"""
+        return self.colorize(text, color)
 
 
 class WindowsFormatter(UnifiedFormatter):

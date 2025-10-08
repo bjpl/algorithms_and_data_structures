@@ -200,6 +200,7 @@ class Theme:
     text: Color = Color.WHITE
     accent: Color = Color.MAGENTA
     highlight: Color = Color.BRIGHT_CYAN
+    header: Color = Color.BRIGHT_MAGENTA  # For header text
 
 
 # ============================================================================
@@ -351,14 +352,23 @@ class UnifiedFormatter:
     multiple formatters into a single, maintainable solution.
     """
 
-    def __init__(self, config: Optional[FormatterConfig] = None):
-        """Initialize formatter with configuration"""
+    def __init__(self, config: Optional[FormatterConfig] = None, theme: Optional[Theme] = None):
+        """Initialize formatter with configuration
+
+        Args:
+            config: Optional FormatterConfig instance
+            theme: Optional Theme instance (for backward compatibility)
+        """
         # Detect platform if not provided
         capabilities = PlatformDetector.detect()
 
         # Initialize config
         if config is None:
             config = FormatterConfig()
+
+        # Apply theme if provided (backward compatibility)
+        if theme is not None:
+            config.theme = theme
 
         self.config = config
         self.capabilities = capabilities
@@ -431,6 +441,42 @@ class UnifiedFormatter:
         result += text + Color.RESET.value
 
         return result
+
+    def enable_colors(self) -> None:
+        """Enable color output"""
+        self.config.colors_enabled = True
+
+    def disable_colors(self) -> None:
+        """Disable color output"""
+        self.config.colors_enabled = False
+
+    def set_unicode(self, enabled: bool) -> None:
+        """Set Unicode character support"""
+        self.config.unicode_enabled = enabled
+
+    # ========================================================================
+    # Convenience Properties (Backward Compatibility)
+    # ========================================================================
+
+    @property
+    def theme(self) -> Theme:
+        """Get current theme"""
+        return self.config.theme
+
+    @property
+    def colors_enabled(self) -> bool:
+        """Check if colors are enabled"""
+        return self.config.colors_enabled
+
+    @property
+    def unicode_enabled(self) -> bool:
+        """Check if Unicode is enabled"""
+        return self.config.unicode_enabled
+
+    @property
+    def color(self) -> Color:
+        """Alias for primary theme color (backward compatibility)"""
+        return self.config.theme.primary
 
     # ========================================================================
     # Core Formatting Methods
