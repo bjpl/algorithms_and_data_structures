@@ -45,3 +45,4 @@ htmlcov/
 venv/
 env/
 ENV/
+test-results/

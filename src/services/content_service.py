@@ -12,13 +12,16 @@ from typing import List, Dict, Any, Optional, Tuple
 from dataclasses import asdict
 from datetime import datetime, timedelta
 
-# TODO: Fix imports - these modules don't exist in current structure
-# from models.content_models import Problem, Concept, Topic, QuizQuestion
-# from models.user_profile import UserProfile, UserProgress
-# from data.database_manager import DatabaseManager
+# Fixed imports - using refactored model structure
+# Problem/Concept/QuizQuestion → Content (filtered by type), Topic → Module, UserProgress → Progress
 from ..utils.logging_config import get_logger
 from ..persistence.db_manager import DatabaseManager
-from ..models import UserProfile, Progress, Content
+from ..models import UserProfile, Progress, Content, Module, ContentType
+
+# Type aliases for backwards compatibility with service logic
+Topic = Module  # Topics are represented as Modules
+UserProgress = Progress  # UserProgress renamed to Progress
+# Problem, Concept, QuizQuestion are all Content with different ContentType values
 
 
 class ContentService:

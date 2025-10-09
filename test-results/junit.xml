@@ -1,3 +1,325 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuites name="jest tests" tests="0" failures="0" errors="0" time="1.141">
+<testsuites name="jest tests" tests="105" failures="22" errors="0" time="3.355">
+  <testsuite name="Theme Application Tests" errors="0" failures="0" skipped="0" timestamp="2025-10-09T20:17:13" time="1.438" tests="20">
+    <testcase classname="Theme Application Tests Theme Management should set valid theme successfully" name="Theme Application Tests Theme Management should set valid theme successfully" time="0.029">
+    </testcase>
+    <testcase classname="Theme Application Tests Theme Management should reject invalid theme names" name="Theme Application Tests Theme Management should reject invalid theme names" time="0">
+    </testcase>
+    <testcase classname="Theme Application Tests Theme Management should return current theme configuration" name="Theme Application Tests Theme Management should return current theme configuration" time="0.001">
+    </testcase>
+    <testcase classname="Theme Application Tests Color Application should apply primary color styling" name="Theme Application Tests Color Application should apply primary color styling" time="0.001">
+    </testcase>
+    <testcase classname="Theme Application Tests Color Application should apply success color styling" name="Theme Application Tests Color Application should apply success color styling" time="0.001">
+    </testcase>
+    <testcase classname="Theme Application Tests Color Application should apply error color styling" name="Theme Application Tests Color Application should apply error color styling" time="0.001">
+    </testcase>
+    <testcase classname="Theme Application Tests Color Application should apply warning color styling" name="Theme Application Tests Color Application should apply warning color styling" time="0.001">
+    </testcase>
+    <testcase classname="Theme Application Tests Color Application should fallback to foreground color for unknown styles" name="Theme Application Tests Color Application should fallback to foreground color for unknown styles" time="0.001">
+    </testcase>
+    <testcase classname="Theme Application Tests Theme Variations should apply dark theme correctly" name="Theme Application Tests Theme Variations should apply dark theme correctly" time="0.003">
+    </testcase>
+    <testcase classname="Theme Application Tests Theme Variations should apply light theme correctly" name="Theme Application Tests Theme Variations should apply light theme correctly" time="0.003">
+    </testcase>
+    <testcase classname="Theme Application Tests Theme Variations should apply accessible theme correctly" name="Theme Application Tests Theme Variations should apply accessible theme correctly" time="0.001">
+    </testcase>
+    <testcase classname="Theme Application Tests UI Component Theming should theme table components" name="Theme Application Tests UI Component Theming should theme table components" time="0">
+    </testcase>
+    <testcase classname="Theme Application Tests UI Component Theming should theme progress bars" name="Theme Application Tests UI Component Theming should theme progress bars" time="0.005">
+    </testcase>
+    <testcase classname="Theme Application Tests UI Component Theming should theme menu items" name="Theme Application Tests UI Component Theming should theme menu items" time="0.001">
+    </testcase>
+    <testcase classname="Theme Application Tests Color Accessibility should provide high contrast colors for accessibility" name="Theme Application Tests Color Accessibility should provide high contrast colors for accessibility" time="0.001">
+    </testcase>
+    <testcase classname="Theme Application Tests Color Accessibility should validate color contrast ratios" name="Theme Application Tests Color Accessibility should validate color contrast ratios" time="0.001">
+    </testcase>
+    <testcase classname="Theme Application Tests Dynamic Theme Switching should switch themes at runtime" name="Theme Application Tests Dynamic Theme Switching should switch themes at runtime" time="0.001">
+    </testcase>
+    <testcase classname="Theme Application Tests Dynamic Theme Switching should preserve theme state across sessions" name="Theme Application Tests Dynamic Theme Switching should preserve theme state across sessions" time="0.001">
+    </testcase>
+    <testcase classname="Theme Application Tests Terminal Environment Detection should detect color support capability" name="Theme Application Tests Terminal Environment Detection should detect color support capability" time="0.001">
+    </testcase>
+    <testcase classname="Theme Application Tests Terminal Environment Detection should fallback gracefully when colors not supported" name="Theme Application Tests Terminal Environment Detection should fallback gracefully when colors not supported" time="0.001">
+    </testcase>
+  </testsuite>
+  <testsuite name="Navigation Flow Integration Tests" errors="0" failures="0" skipped="0" timestamp="2025-10-09T20:17:13" time="1.983" tests="21">
+    <testcase classname="Navigation Flow Integration Tests Basic Navigation Flows should navigate from main menu to arrays submenu" name="Navigation Flow Integration Tests Basic Navigation Flows should navigate from main menu to arrays submenu" time="0.012">
+    </testcase>
+    <testcase classname="Navigation Flow Integration Tests Basic Navigation Flows should maintain navigation history correctly" name="Navigation Flow Integration Tests Basic Navigation Flows should maintain navigation history correctly" time="0.001">
+    </testcase>
+    <testcase classname="Navigation Flow Integration Tests Basic Navigation Flows should go back through navigation history" name="Navigation Flow Integration Tests Basic Navigation Flows should go back through navigation history" time="0.001">
+    </testcase>
+    <testcase classname="Navigation Flow Integration Tests Basic Navigation Flows should handle navigation to non-existent screen" name="Navigation Flow Integration Tests Basic Navigation Flows should handle navigation to non-existent screen" time="0.001">
+    </testcase>
+    <testcase classname="Navigation Flow Integration Tests Menu Item Selection Flows should select menu items and navigate to target screens" name="Navigation Flow Integration Tests Menu Item Selection Flows should select menu items and navigate to target screens" time="0.001">
+    </testcase>
+    <testcase classname="Navigation Flow Integration Tests Menu Item Selection Flows should handle selection when no items exist" name="Navigation Flow Integration Tests Menu Item Selection Flows should handle selection when no items exist" time="0.001">
+    </testcase>
+    <testcase classname="Navigation Flow Integration Tests Menu Item Selection Flows should handle selection beyond available items" name="Navigation Flow Integration Tests Menu Item Selection Flows should handle selection beyond available items" time="0">
+    </testcase>
+    <testcase classname="Navigation Flow Integration Tests Complete User Journey Flows should complete full learning path navigation" name="Navigation Flow Integration Tests Complete User Journey Flows should complete full learning path navigation" time="0.001">
+    </testcase>
+    <testcase classname="Navigation Flow Integration Tests Complete User Journey Flows should handle practice problem workflow" name="Navigation Flow Integration Tests Complete User Journey Flows should handle practice problem workflow" time="0.002">
+    </testcase>
+    <testcase classname="Navigation Flow Integration Tests Complete User Journey Flows should maintain consistent state during complex navigation" name="Navigation Flow Integration Tests Complete User Journey Flows should maintain consistent state during complex navigation" time="0.001">
+    </testcase>
+    <testcase classname="Navigation Flow Integration Tests Breadcrumb Navigation should update breadcrumbs correctly during navigation" name="Navigation Flow Integration Tests Breadcrumb Navigation should update breadcrumbs correctly during navigation" time="0.001">
+    </testcase>
+    <testcase classname="Navigation Flow Integration Tests Breadcrumb Navigation should maintain breadcrumbs when going back" name="Navigation Flow Integration Tests Breadcrumb Navigation should maintain breadcrumbs when going back" time="0">
+    </testcase>
+    <testcase classname="Navigation Flow Integration Tests Breadcrumb Navigation should handle deep navigation breadcrumbs" name="Navigation Flow Integration Tests Breadcrumb Navigation should handle deep navigation breadcrumbs" time="0.001">
+    </testcase>
+    <testcase classname="Navigation Flow Integration Tests Error Handling in Navigation should handle navigation errors gracefully" name="Navigation Flow Integration Tests Error Handling in Navigation should handle navigation errors gracefully" time="0">
+    </testcase>
+    <testcase classname="Navigation Flow Integration Tests Error Handling in Navigation should recover from navigation errors" name="Navigation Flow Integration Tests Error Handling in Navigation should recover from navigation errors" time="0">
+    </testcase>
+    <testcase classname="Navigation Flow Integration Tests Error Handling in Navigation should handle back navigation when no history exists" name="Navigation Flow Integration Tests Error Handling in Navigation should handle back navigation when no history exists" time="0">
+    </testcase>
+    <testcase classname="Navigation Flow Integration Tests Navigation Event Logging should log all navigation events" name="Navigation Flow Integration Tests Navigation Event Logging should log all navigation events" time="0.001">
+    </testcase>
+    <testcase classname="Navigation Flow Integration Tests Navigation Event Logging should track user journey patterns" name="Navigation Flow Integration Tests Navigation Event Logging should track user journey patterns" time="0">
+    </testcase>
+    <testcase classname="Navigation Flow Integration Tests Screen State Management should properly initialize screen state" name="Navigation Flow Integration Tests Screen State Management should properly initialize screen state" time="0.001">
+    </testcase>
+    <testcase classname="Navigation Flow Integration Tests Screen State Management should handle different screen types" name="Navigation Flow Integration Tests Screen State Management should handle different screen types" time="0.001">
+    </testcase>
+    <testcase classname="Navigation Flow Integration Tests Screen State Management should maintain screen relationships" name="Navigation Flow Integration Tests Screen State Management should maintain screen relationships" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="Keyboard Navigation Tests" errors="0" failures="0" skipped="0" timestamp="2025-10-09T20:17:13" time="2.06" tests="22">
+    <testcase classname="Keyboard Navigation Tests Arrow Key Navigation should navigate up with ArrowUp key" name="Keyboard Navigation Tests Arrow Key Navigation should navigate up with ArrowUp key" time="0.018">
+    </testcase>
+    <testcase classname="Keyboard Navigation Tests Arrow Key Navigation should navigate down with ArrowDown key" name="Keyboard Navigation Tests Arrow Key Navigation should navigate down with ArrowDown key" time="0.001">
+    </testcase>
+    <testcase classname="Keyboard Navigation Tests Arrow Key Navigation should not go below 0 when navigating up" name="Keyboard Navigation Tests Arrow Key Navigation should not go below 0 when navigating up" time="0.001">
+    </testcase>
+    <testcase classname="Keyboard Navigation Tests Arrow Key Navigation should not exceed maxIndex when navigating down" name="Keyboard Navigation Tests Arrow Key Navigation should not exceed maxIndex when navigating down" time="0">
+    </testcase>
+    <testcase classname="Keyboard Navigation Tests Home/End Navigation should jump to first item with Home key" name="Keyboard Navigation Tests Home/End Navigation should jump to first item with Home key" time="0.001">
+    </testcase>
+    <testcase classname="Keyboard Navigation Tests Home/End Navigation should jump to last item with End key" name="Keyboard Navigation Tests Home/End Navigation should jump to last item with End key" time="0.001">
+    </testcase>
+    <testcase classname="Keyboard Navigation Tests Selection and Action Keys should handle Enter key for selection" name="Keyboard Navigation Tests Selection and Action Keys should handle Enter key for selection" time="0.001">
+    </testcase>
+    <testcase classname="Keyboard Navigation Tests Selection and Action Keys should handle Escape key for going back" name="Keyboard Navigation Tests Selection and Action Keys should handle Escape key for going back" time="0.005">
+    </testcase>
+    <testcase classname="Keyboard Navigation Tests Selection and Action Keys should not go back on Escape if canGoBack is false" name="Keyboard Navigation Tests Selection and Action Keys should not go back on Escape if canGoBack is false" time="0.004">
+    </testcase>
+    <testcase classname="Keyboard Navigation Tests Selection and Action Keys should handle Tab key for focus management" name="Keyboard Navigation Tests Selection and Action Keys should handle Tab key for focus management" time="0.003">
+    </testcase>
+    <testcase classname="Keyboard Navigation Tests Shortcut Keys should handle Ctrl+H for help" name="Keyboard Navigation Tests Shortcut Keys should handle Ctrl+H for help" time="0.001">
+    </testcase>
+    <testcase classname="Keyboard Navigation Tests Shortcut Keys should handle Ctrl+Q for quit" name="Keyboard Navigation Tests Shortcut Keys should handle Ctrl+Q for quit" time="0.001">
+    </testcase>
+    <testcase classname="Keyboard Navigation Tests Shortcut Keys should not trigger shortcuts without Ctrl key" name="Keyboard Navigation Tests Shortcut Keys should not trigger shortcuts without Ctrl key" time="0.001">
+    </testcase>
+    <testcase classname="Keyboard Navigation Tests Direct Number Selection should handle number key for direct selection" name="Keyboard Navigation Tests Direct Number Selection should handle number key for direct selection" time="0.001">
+    </testcase>
+    <testcase classname="Keyboard Navigation Tests Direct Number Selection should ignore number keys beyond maxIndex" name="Keyboard Navigation Tests Direct Number Selection should ignore number keys beyond maxIndex" time="0">
+    </testcase>
+    <testcase classname="Keyboard Navigation Tests Direct Number Selection should handle 0 key for first item selection" name="Keyboard Navigation Tests Direct Number Selection should handle 0 key for first item selection" time="0">
+    </testcase>
+    <testcase classname="Keyboard Navigation Tests Navigation State Management should maintain navigation history" name="Keyboard Navigation Tests Navigation State Management should maintain navigation history" time="0.001">
+    </testcase>
+    <testcase classname="Keyboard Navigation Tests Navigation State Management should reset canGoBack when history is empty" name="Keyboard Navigation Tests Navigation State Management should reset canGoBack when history is empty" time="0">
+    </testcase>
+    <testcase classname="Keyboard Navigation Tests Accessibility Features should support screen reader navigation patterns" name="Keyboard Navigation Tests Accessibility Features should support screen reader navigation patterns" time="0.004">
+    </testcase>
+    <testcase classname="Keyboard Navigation Tests Accessibility Features should maintain focus indicators" name="Keyboard Navigation Tests Accessibility Features should maintain focus indicators" time="0">
+    </testcase>
+    <testcase classname="Keyboard Navigation Tests Multi-key Combinations should handle Shift+Tab for reverse tab navigation" name="Keyboard Navigation Tests Multi-key Combinations should handle Shift+Tab for reverse tab navigation" time="0.001">
+    </testcase>
+    <testcase classname="Keyboard Navigation Tests Multi-key Combinations should handle Alt+Enter for alternative selection" name="Keyboard Navigation Tests Multi-key Combinations should handle Alt+Enter for alternative selection" time="0.001">
+    </testcase>
+  </testsuite>
+  <testsuite name="UI Components Tests" errors="0" failures="0" skipped="0" timestamp="2025-10-09T20:17:13" time="2.398" tests="15">
+    <testcase classname="UI Components Tests Console Output Components should format headers with chalk colors" name="UI Components Tests Console Output Components should format headers with chalk colors" time="0.02">
+    </testcase>
+    <testcase classname="UI Components Tests Console Output Components should create success messages with green color" name="UI Components Tests Console Output Components should create success messages with green color" time="0.001">
+    </testcase>
+    <testcase classname="UI Components Tests Console Output Components should create error messages with red color" name="UI Components Tests Console Output Components should create error messages with red color" time="0.001">
+    </testcase>
+    <testcase classname="UI Components Tests Console Output Components should create warning messages with yellow color" name="UI Components Tests Console Output Components should create warning messages with yellow color" time="0.001">
+    </testcase>
+    <testcase classname="UI Components Tests Console Output Components should create info messages with blue color" name="UI Components Tests Console Output Components should create info messages with blue color" time="0">
+    </testcase>
+    <testcase classname="UI Components Tests Table Components should create basic table structure" name="UI Components Tests Table Components should create basic table structure" time="0.002">
+    </testcase>
+    <testcase classname="UI Components Tests Table Components should add rows to table" name="UI Components Tests Table Components should add rows to table" time="0">
+    </testcase>
+    <testcase classname="UI Components Tests Table Components should render table with custom styling" name="UI Components Tests Table Components should render table with custom styling" time="0.035">
+    </testcase>
+    <testcase classname="UI Components Tests Table Components should handle empty table gracefully" name="UI Components Tests Table Components should handle empty table gracefully" time="0.001">
+    </testcase>
+    <testcase classname="UI Components Tests Progress Indicators should create progress bar component" name="UI Components Tests Progress Indicators should create progress bar component" time="0.001">
+    </testcase>
+    <testcase classname="UI Components Tests Progress Indicators should create spinner component states" name="UI Components Tests Progress Indicators should create spinner component states" time="0.001">
+    </testcase>
+    <testcase classname="UI Components Tests Menu Components should format menu items correctly" name="UI Components Tests Menu Components should format menu items correctly" time="0.001">
+    </testcase>
+    <testcase classname="UI Components Tests Menu Components should handle menu navigation state" name="UI Components Tests Menu Components should handle menu navigation state" time="0.002">
+    </testcase>
+    <testcase classname="UI Components Tests Form Components should validate input components" name="UI Components Tests Form Components should validate input components" time="0.002">
+    </testcase>
+    <testcase classname="UI Components Tests Form Components should handle form state management" name="UI Components Tests Form Components should handle form state management" time="0.001">
+    </testcase>
+  </testsuite>
+  <testsuite name="Command Execution Integration Tests" errors="0" failures="22" skipped="0" timestamp="2025-10-09T20:17:13" time="2.337" tests="27">
+    <testcase classname="Command Execution Integration Tests Basic Command Execution should execute start command successfully" name="Command Execution Integration Tests Basic Command Execution should execute start command successfully" time="0.034">
+      <failure>Error: expect(received).toBe(expected) // Object.is equality
+
+Expected: true
+Received: false
+    at Object.toBe (C:\Users\brand\Development\Project_Workspace\active-development\algorithms_and_data_structures\tests\ui\integration\command-execution.test.js:360:36)</failure>
+    </testcase>
+    <testcase classname="Command Execution Integration Tests Basic Command Execution should execute complete command successfully" name="Command Execution Integration Tests Basic Command Execution should execute complete command successfully" time="0.002">
+      <failure>Error: expect(received).toBe(expected) // Object.is equality
+
+Expected: true
+Received: false
+    at Object.toBe (C:\Users\brand\Development\Project_Workspace\active-development\algorithms_and_data_structures\tests\ui\integration\command-execution.test.js:370:36)</failure>
+    </testcase>
+    <testcase classname="Command Execution Integration Tests Basic Command Execution should execute progress command and return data" name="Command Execution Integration Tests Basic Command Execution should execute progress command and return data" time="0.002">
+      <failure>Error: expect(received).toBeDefined()
+
+Received: undefined
+    at Object.toBeDefined (C:\Users\brand\Development\Project_Workspace\active-development\algorithms_and_data_structures\tests\ui\integration\command-execution.test.js:386:50)</failure>
+    </testcase>
+    <testcase classname="Command Execution Integration Tests Basic Command Execution should execute help command and return command info" name="Command Execution Integration Tests Basic Command Execution should execute help command and return command info" time="0.002">
+      <failure>TypeError: Cannot read properties of undefined (reading &apos;name&apos;)
+    at Object.name (C:\Users\brand\Development\Project_Workspace\active-development\algorithms_and_data_structures\tests\ui\integration\command-execution.test.js:398:38)</failure>
+    </testcase>
+    <testcase classname="Command Execution Integration Tests Command Validation and Error Handling should handle unknown commands" name="Command Execution Integration Tests Command Validation and Error Handling should handle unknown commands" time="0.001">
+    </testcase>
+    <testcase classname="Command Execution Integration Tests Command Validation and Error Handling should validate required arguments" name="Command Execution Integration Tests Command Validation and Error Handling should validate required arguments" time="0.001">
+    </testcase>
+    <testcase classname="Command Execution Integration Tests Command Validation and Error Handling should handle command execution errors" name="Command Execution Integration Tests Command Validation and Error Handling should handle command execution errors" time="0.001">
+    </testcase>
+    <testcase classname="Command Execution Integration Tests Command Validation and Error Handling should handle invalid settings" name="Command Execution Integration Tests Command Validation and Error Handling should handle invalid settings" time="0.001">
+      <failure>Error: expect(received).toContain(expected) // indexOf
+
+Expected substring: &quot;Invalid setting&quot;
+Received string:    &quot;Unknown command: set invalidSetting value&quot;
+    at Object.toContain (C:\Users\brand\Development\Project_Workspace\active-development\algorithms_and_data_structures\tests\ui\integration\command-execution.test.js:429:36)</failure>
+    </testcase>
+    <testcase classname="Command Execution Integration Tests Command Validation and Error Handling should handle file operation errors" name="Command Execution Integration Tests Command Validation and Error Handling should handle file operation errors" time="0.001">
+      <failure>Error: expect(received).toContain(expected) // indexOf
+
+Expected substring: &quot;File not found&quot;
+Received string:    &quot;Unknown command: load nonexistent.json&quot;
+    at Object.toContain (C:\Users\brand\Development\Project_Workspace\active-development\algorithms_and_data_structures\tests\ui\integration\command-execution.test.js:436:36)</failure>
+    </testcase>
+    <testcase classname="Command Execution Integration Tests Settings Management should update string settings" name="Command Execution Integration Tests Settings Management should update string settings" time="0">
+      <failure>Error: expect(received).toBe(expected) // Object.is equality
+
+Expected: true
+Received: false
+    at Object.toBe (C:\Users\brand\Development\Project_Workspace\active-development\algorithms_and_data_structures\tests\ui\integration\command-execution.test.js:444:36)</failure>
+    </testcase>
+    <testcase classname="Command Execution Integration Tests Settings Management should update boolean settings" name="Command Execution Integration Tests Settings Management should update boolean settings" time="0.001">
+      <failure>Error: expect(received).toBe(expected) // Object.is equality
+
+Expected: true
+Received: false
+    at Object.toBe (C:\Users\brand\Development\Project_Workspace\active-development\algorithms_and_data_structures\tests\ui\integration\command-execution.test.js:450:37)</failure>
+    </testcase>
+    <testcase classname="Command Execution Integration Tests Settings Management should handle boolean conversion from strings" name="Command Execution Integration Tests Settings Management should handle boolean conversion from strings" time="0.001">
+      <failure>Error: expect(received).toBe(expected) // Object.is equality
+
+Expected: false
+Received: true
+    at Object.toBe (C:\Users\brand\Development\Project_Workspace\active-development\algorithms_and_data_structures\tests\ui\integration\command-execution.test.js:463:60)</failure>
+    </testcase>
+    <testcase classname="Command Execution Integration Tests Progress Persistence should save progress to file" name="Command Execution Integration Tests Progress Persistence should save progress to file" time="0.001">
+      <failure>Error: expect(received).toBe(expected) // Object.is equality
+
+Expected: true
+Received: false
+    at Object.toBe (C:\Users\brand\Development\Project_Workspace\active-development\algorithms_and_data_structures\tests\ui\integration\command-execution.test.js:474:36)</failure>
+    </testcase>
+    <testcase classname="Command Execution Integration Tests Progress Persistence should load progress from file" name="Command Execution Integration Tests Progress Persistence should load progress from file" time="0">
+      <failure>Error: expect(received).toBe(expected) // Object.is equality
+
+Expected: true
+Received: false
+    at Object.toBe (C:\Users\brand\Development\Project_Workspace\active-development\algorithms_and_data_structures\tests\ui\integration\command-execution.test.js:494:36)</failure>
+    </testcase>
+    <testcase classname="Command Execution Integration Tests Progress Persistence should handle auto-save when enabled" name="Command Execution Integration Tests Progress Persistence should handle auto-save when enabled" time="0.002">
+      <failure>Error: expect(jest.fn()).toHaveBeenCalledWith(...expected)
+
+Expected: &quot;progress.json&quot;, StringContaining &quot;recursion&quot;
+
+Number of calls: 0
+    at Object.toHaveBeenCalledWith (C:\Users\brand\Development\Project_Workspace\active-development\algorithms_and_data_structures\tests\ui\integration\command-execution.test.js:505:42)</failure>
+    </testcase>
+    <testcase classname="Command Execution Integration Tests Progress Reset Operations should reset current lesson progress" name="Command Execution Integration Tests Progress Reset Operations should reset current lesson progress" time="0.001">
+      <failure>Error: expect(received).toBe(expected) // Object.is equality
+
+Expected: true
+Received: false
+    at Object.toBe (C:\Users\brand\Development\Project_Workspace\active-development\algorithms_and_data_structures\tests\ui\integration\command-execution.test.js:519:36)</failure>
+    </testcase>
+    <testcase classname="Command Execution Integration Tests Progress Reset Operations should reset specific lesson progress" name="Command Execution Integration Tests Progress Reset Operations should reset specific lesson progress" time="0.001">
+      <failure>Error: expect(received).toBe(expected) // Object.is equality
+
+Expected: true
+Received: false
+    at Object.toBe (C:\Users\brand\Development\Project_Workspace\active-development\algorithms_and_data_structures\tests\ui\integration\command-execution.test.js:532:36)</failure>
+    </testcase>
+    <testcase classname="Command Execution Integration Tests Progress Reset Operations should reset all progress" name="Command Execution Integration Tests Progress Reset Operations should reset all progress" time="0.001">
+      <failure>Error: expect(received).toBe(expected) // Object.is equality
+
+Expected: true
+Received: false
+    at Object.toBe (C:\Users\brand\Development\Project_Workspace\active-development\algorithms_and_data_structures\tests\ui\integration\command-execution.test.js:545:36)</failure>
+    </testcase>
+    <testcase classname="Command Execution Integration Tests Progress Reset Operations should handle reset of non-existent lesson" name="Command Execution Integration Tests Progress Reset Operations should handle reset of non-existent lesson" time="0.001">
+      <failure>Error: expect(received).toContain(expected) // indexOf
+
+Expected substring: &quot;Lesson not found&quot;
+Received string:    &quot;Unknown command: reset nonexistent&quot;
+    at Object.toContain (C:\Users\brand\Development\Project_Workspace\active-development\algorithms_and_data_structures\tests\ui\integration\command-execution.test.js:554:36)</failure>
+    </testcase>
+    <testcase classname="Command Execution Integration Tests Command History and State should maintain command execution history" name="Command Execution Integration Tests Command History and State should maintain command execution history" time="0.006">
+      <failure>Error: expect(received).toHaveLength(expected)
+
+Expected length: 3
+Received length: 1
+Received array:  [{&quot;command&quot;: &quot;progress&quot;, &quot;result&quot;: {&quot;data&quot;: {&quot;progress&quot;: {}}, &quot;message&quot;: &quot;Found progress for 0 lessons&quot;, &quot;success&quot;: true}, &quot;status&quot;: &quot;completed&quot;, &quot;timestamp&quot;: 1760041035940}]
+    at Object.toHaveLength (C:\Users\brand\Development\Project_Workspace\active-development\algorithms_and_data_structures\tests\ui\integration\command-execution.test.js:566:29)</failure>
+    </testcase>
+    <testcase classname="Command Execution Integration Tests Command History and State should track command execution errors in history" name="Command Execution Integration Tests Command History and State should track command execution errors in history" time="0.001">
+      <failure>TypeError: Cannot read properties of undefined (reading &apos;status&apos;)
+    at Object.status (C:\Users\brand\Development\Project_Workspace\active-development\algorithms_and_data_structures\tests\ui\integration\command-execution.test.js:579:30)</failure>
+    </testcase>
+    <testcase classname="Command Execution Integration Tests Command History and State should clear command history" name="Command Execution Integration Tests Command History and State should clear command history" time="0.001">
+    </testcase>
+    <testcase classname="Command Execution Integration Tests Command History and State should track last successful command" name="Command Execution Integration Tests Command History and State should track last successful command" time="0.001">
+      <failure>TypeError: Cannot read properties of null (reading &apos;command&apos;)
+    at Object.command (C:\Users\brand\Development\Project_Workspace\active-development\algorithms_and_data_structures\tests\ui\integration\command-execution.test.js:596:52)</failure>
+    </testcase>
+    <testcase classname="Command Execution Integration Tests Concurrent Command Execution should queue commands when system is busy" name="Command Execution Integration Tests Concurrent Command Execution should queue commands when system is busy" time="0.001">
+      <failure>Error: expect(received).toBe(expected) // Object.is equality
+
+Expected: true
+Received: false
+    at Object.toBe (C:\Users\brand\Development\Project_Workspace\active-development\algorithms_and_data_structures\tests\ui\integration\command-execution.test.js:611:37)</failure>
+    </testcase>
+    <testcase classname="Command Execution Integration Tests Concurrent Command Execution should prevent concurrent execution" name="Command Execution Integration Tests Concurrent Command Execution should prevent concurrent execution" time="0.004">
+    </testcase>
+    <testcase classname="Command Execution Integration Tests Complex Command Workflows should execute complete learning workflow" name="Command Execution Integration Tests Complex Command Workflows should execute complete learning workflow" time="0.001">
+      <failure>Error: expect(received).toBe(expected) // Object.is equality
+
+Expected: true
+Received: false
+    at Object.toBe (C:\Users\brand\Development\Project_Workspace\active-development\algorithms_and_data_structures\tests\ui\integration\command-execution.test.js:642:51)</failure>
+    </testcase>
+    <testcase classname="Command Execution Integration Tests Complex Command Workflows should handle error recovery in workflows" name="Command Execution Integration Tests Complex Command Workflows should handle error recovery in workflows" time="0.001">
+      <failure>Error: expect(received).toBe(expected) // Object.is equality
+
+Expected: true
+Received: false
+    at Object.toBe (C:\Users\brand\Development\Project_Workspace\active-development\algorithms_and_data_structures\tests\ui\integration\command-execution.test.js:659:43)</failure>
+    </testcase>
+  </testsuite>
 </testsuites>

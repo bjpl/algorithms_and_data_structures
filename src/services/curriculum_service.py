@@ -11,13 +11,16 @@ from typing import List, Dict, Any, Optional, Set
 from dataclasses import asdict
 from datetime import datetime, timedelta
 
-# TODO: Fix imports - these modules don't exist in current structure
-# from models.content_models import Topic, Problem, Concept, LearningPath
-# from models.user_profile import UserProfile, UserProgress
-# from data.database_manager import DatabaseManager
+# Fixed imports - using refactored model structure
+# Topic → Module/Lesson, Problem/Concept → Content, UserProgress → Progress, LearningPath → Course
 from ..utils.logging_config import get_logger
 from ..persistence.db_manager import DatabaseManager
-from ..models import UserProfile, Progress
+from ..models import UserProfile, Progress, Module, Lesson, Content, Course, Curriculum
+
+# Type aliases for backwards compatibility with service logic
+Topic = Module  # Topics are represented as Modules in the refactored structure
+LearningPath = Course  # Learning paths are represented as Courses
+UserProgress = Progress  # UserProgress renamed to Progress
 
 
 class CurriculumService:
