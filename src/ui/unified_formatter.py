@@ -389,6 +389,10 @@ class UnifiedFormatter:
         self.config.terminal_width = capabilities.terminal_width
         self.config.terminal_height = capabilities.terminal_height
 
+        # Initialize plugin system
+        self._plugins: List[Any] = []
+        self._plugin_manager: Optional[Any] = None
+
     # ========================================================================
     # Factory Methods
     # ========================================================================
@@ -912,6 +916,138 @@ class UnifiedFormatter:
             os.system('cls')
         else:
             os.system('clear')
+
+    # ========================================================================
+    # Plugin Management
+    # ========================================================================
+
+    def attach_plugin(self, plugin: Any) -> None:
+        """
+        Attach a plugin to the formatter.
+
+        Plugins extend formatter functionality by providing additional
+        content type handlers, rendering strategies, and formatting capabilities.
+
+        Args:
+            plugin: Plugin instance (must inherit from BasePlugin)
+
+        Raises:
+            TypeError: If plugin doesn't have required methods
+            Exception: If plugin initialization fails (logged, not raised)
+
+        Example:
+            >>> from src.ui.formatter_plugins import AnimationPlugin
+            >>> formatter = UnifiedFormatter()
+            >>> formatter.attach_plugin(AnimationPlugin())
+        """
+        # Lazy import to avoid circular dependencies
+        try:
+            from .formatter_plugins.base import BasePlugin
+        except ImportError:
+            # Gracefully handle missing plugin system
+            return
+
+        # Validate plugin has required interface
+        if not hasattr(plugin, 'initialize'):
+            raise TypeError(f"Plugin {plugin} must have 'initialize' method")
+
+        if not hasattr(plugin, 'name'):
+            raise TypeError(f"Plugin {plugin} must have 'name' property")
+
+        # Initialize plugin manager if needed
+        if self._plugin_manager is None:
+            try:
+                from .formatter_plugins.base import PluginManager
+                self._plugin_manager = PluginManager(formatter=self)
+            except ImportError:
+                # Fallback to simple list if PluginManager not available
+                pass
+
+        # Attach plugin
+        try:
+            if self._plugin_manager:
+                self._plugin_manager.register(plugin)
+                self._plugin_manager.initialize(plugin.name)
+            else:
+                # Fallback: direct initialization
+                plugin.initialize(self)
+
+            self._plugins.append(plugin)
+
+        except Exception as e:
+            # Log error but don't fail - plugins are optional
+            import logging
+            logging.warning(f"Failed to attach plugin {getattr(plugin, 'name', plugin)}: {e}")
+
+    def detach_plugin(self, plugin_name: str) -> bool:
+        """
+        Detach a plugin from the formatter.
+
+        Args:
+            plugin_name: Name of the plugin to detach
+
+        Returns:
+            True if plugin was detached, False if not found
+
+        Example:
+            >>> formatter.detach_plugin('animation')
+        """
+        try:
+            if self._plugin_manager:
+                self._plugin_manager.unregister(plugin_name)
+            else:
+                # Fallback: find and remove from list
+                for plugin in self._plugins:
+                    if hasattr(plugin, 'name') and plugin.name == plugin_name:
+                        if hasattr(plugin, 'shutdown'):
+                            plugin.shutdown()
+                        self._plugins.remove(plugin)
+                        return True
+                return False
+
+            return True
+
+        except Exception:
+            return False
+
+    def get_plugin(self, plugin_name: str) -> Optional[Any]:
+        """
+        Get a plugin by name.
+
+        Args:
+            plugin_name: Name of the plugin
+
+        Returns:
+            Plugin instance or None if not found
+
+        Example:
+            >>> animation = formatter.get_plugin('animation')
+            >>> if animation:
+            ...     animation.spinner("Loading...")
+        """
+        if self._plugin_manager:
+            return self._plugin_manager.get_plugin(plugin_name)
+        else:
+            for plugin in self._plugins:
+                if hasattr(plugin, 'name') and plugin.name == plugin_name:
+                    return plugin
+        return None
+
+    def list_plugins(self) -> List[str]:
+        """
+        List all attached plugin names.
+
+        Returns:
+            List of plugin names
+
+        Example:
+            >>> formatter.list_plugins()
+            ['animation', 'gradient', 'windows_optimizer']
+        """
+        if self._plugin_manager:
+            return self._plugin_manager.list_plugins()
+        else:
+            return [plugin.name for plugin in self._plugins if hasattr(plugin, 'name')]
 
 
 # ============================================================================

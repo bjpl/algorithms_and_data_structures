@@ -148,12 +148,30 @@ class FormatterFactory:
         formatter.enable_colors()
         formatter.set_unicode(True)  # Rich formatter always uses unicode
 
-        # TODO: Load gradient and animation plugins when available
-        # This would be where we'd attach plugins:
-        # if gradient_enabled:
-        #     formatter.attach_plugin(GradientPlugin())
-        # if animations_enabled:
-        #     formatter.attach_plugin(AnimationPlugin())
+        # Attach gradient and animation plugins
+        try:
+            if gradient_enabled:
+                from .formatter_plugins.gradient_plugin import GradientPlugin
+                formatter.attach_plugin(GradientPlugin())
+        except ImportError:
+            # Gradient plugin not available, continue without it
+            pass
+        except Exception as e:
+            # Log error but continue - plugins are optional
+            import logging
+            logging.debug(f"Failed to load gradient plugin: {e}")
+
+        try:
+            if animations_enabled:
+                from .formatter_plugins.animation_plugin import AnimationPlugin
+                formatter.attach_plugin(AnimationPlugin())
+        except ImportError:
+            # Animation plugin not available, continue without it
+            pass
+        except Exception as e:
+            # Log error but continue - plugins are optional
+            import logging
+            logging.debug(f"Failed to load animation plugin: {e}")
 
         return formatter
 
@@ -183,8 +201,17 @@ class FormatterFactory:
             in_windows_terminal = os.environ.get('WT_SESSION') is not None
             formatter.set_unicode(in_windows_terminal)
 
-        # TODO: Attach Windows optimizer plugin when available
-        # formatter.attach_plugin(WindowsOptimizerPlugin())
+        # Attach Windows optimizer plugin
+        try:
+            from .formatter_plugins.windows_plugin import WindowsOptimizerPlugin
+            formatter.attach_plugin(WindowsOptimizerPlugin())
+        except ImportError:
+            # Windows optimizer plugin not available, continue without it
+            pass
+        except Exception as e:
+            # Log error but continue - plugins are optional
+            import logging
+            logging.debug(f"Failed to load Windows optimizer plugin: {e}")
 
         return formatter
 
@@ -224,9 +251,12 @@ class FormatterFactory:
         # Attach plugins if provided
         if plugins:
             for plugin in plugins:
-                # TODO: Implement plugin attachment when plugin system is complete
-                # formatter.attach_plugin(plugin)
-                pass
+                try:
+                    formatter.attach_plugin(plugin)
+                except Exception as e:
+                    # Log error but continue - plugins are optional
+                    import logging
+                    logging.warning(f"Failed to attach plugin: {e}")
 
         return formatter
 

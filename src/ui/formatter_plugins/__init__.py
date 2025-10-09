@@ -51,6 +51,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from .animation_plugin import AnimationPlugin
     from .windows_plugin import WindowsOptimizerPlugin
+    from .gradient_plugin import GradientPlugin
     from .lesson_plugin import LessonFormatterPlugin
     from .rich_plugin import RichFormatterPlugin
     from .markdown_plugin import MarkdownPlugin
@@ -79,6 +80,7 @@ __all__ = [
     # Existing plugins
     'AnimationPlugin',
     'WindowsOptimizerPlugin',
+    'GradientPlugin',
     'LessonFormatterPlugin',
 
     # New formatter plugins
