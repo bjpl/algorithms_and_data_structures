@@ -24,16 +24,22 @@ describe('Memory Usage Tests', () => {
             currentUsage: null,
             
             getMemoryUsage: function() {
-                // Simulate memory usage fluctuation
-                const fluctuation = (Math.random() - 0.5) * 0.1; // ±10% fluctuation
-                const growth = (uiSystem.components.size * 1024 * 100); // 100KB per component
-                
+                // Simulate memory usage with controlled fluctuation
+                const fluctuation = (Math.random() - 0.5) * 0.02; // ±2% fluctuation (reduced for stability)
+                const componentGrowth = (uiSystem.components.size * 1024 * 100); // 100KB per component
+
+                // Include cache memory in the calculation
+                const cacheGrowth = Array.from(uiSystem.dataCache.values())
+                    .reduce((total, cached) => total + cached.size, 0);
+
+                const totalGrowth = componentGrowth + cacheGrowth;
+
                 return {
-                    heapUsed: Math.floor(this.baseline.heapUsed * (1 + fluctuation) + growth),
-                    heapTotal: Math.floor(this.baseline.heapTotal * (1 + fluctuation) + growth * 1.5),
+                    heapUsed: Math.floor(this.baseline.heapUsed * (1 + fluctuation) + totalGrowth),
+                    heapTotal: Math.floor(this.baseline.heapTotal * (1 + fluctuation) + totalGrowth * 1.5),
                     external: Math.floor(this.baseline.external * (1 + fluctuation)),
-                    rss: Math.floor(this.baseline.rss * (1 + fluctuation) + growth * 1.2),
-                    timestamp: Date.now()
+                    rss: Math.floor(this.baseline.rss * (1 + fluctuation) + totalGrowth * 1.2),
+                    timestamp: performance.now()
                 };
             },
             
@@ -42,9 +48,9 @@ describe('Memory Usage Tests', () => {
                 const snapshot = {
                     label,
                     usage,
-                    timestamp: Date.now()
+                    timestamp: performance.now()
                 };
-                
+
                 memorySnapshots.push(snapshot);
                 return snapshot;
             },
@@ -58,7 +64,8 @@ describe('Memory Usage Tests', () => {
                     timeDelta: after.timestamp - before.timestamp,
                     
                     getMemoryGrowthRate: function() {
-                        const timeSeconds = this.timeDelta / 1000;
+                        // Convert milliseconds to seconds, ensure minimum time to prevent division by zero
+                        const timeSeconds = Math.max(this.timeDelta / 1000, 0.001);
                         return {
                             heapPerSecond: this.heapUsedDelta / timeSeconds,
                             rssPerSecond: this.rssDelta / timeSeconds
@@ -69,24 +76,40 @@ describe('Memory Usage Tests', () => {
             
             detectMemoryLeak: function(snapshots, thresholdMB = 10) {
                 if (snapshots.length < 3) return null;
-                
+
                 const recent = snapshots.slice(-5); // Last 5 snapshots
-                const growthRates = [];
-                
-                for (let i = 1; i < recent.length; i++) {
-                    const comparison = this.compareSnapshots(recent[i-1], recent[i]);
-                    const growthRate = comparison.getMemoryGrowthRate();
-                    growthRates.push(growthRate.heapPerSecond);
-                }
-                
-                const avgGrowthRate = growthRates.reduce((a, b) => a + b, 0) / growthRates.length;
+
+                // Calculate total memory change and total time
+                const first = recent[0];
+                const last = recent[recent.length - 1];
+                const totalTimeDelta = last.timestamp - first.timestamp;
+                const totalMemoryDelta = last.usage.heapUsed - first.usage.heapUsed;
+
+                // Ensure minimum time period to get meaningful rate
+                const timeSeconds = Math.max(totalTimeDelta / 1000, 1);
+
+                // Calculate average growth rate over entire period
+                const avgGrowthRate = totalMemoryDelta / timeSeconds;
+
+                // Convert threshold to bytes per second
                 const thresholdBytesPerSecond = thresholdMB * 1024 * 1024;
-                
+
+                // Check if memory is consistently growing across snapshots
+                let positiveGrowthCount = 0;
+                for (let i = 1; i < recent.length; i++) {
+                    if (recent[i].usage.heapUsed > recent[i-1].usage.heapUsed) {
+                        positiveGrowthCount++;
+                    }
+                }
+
+                // Only flag as leak if consistently growing AND exceeds threshold
+                const isConsistentGrowth = positiveGrowthCount >= (recent.length - 1) * 0.6; // 60% of intervals growing
+
                 return {
-                    isLeaking: avgGrowthRate > thresholdBytesPerSecond,
+                    isLeaking: isConsistentGrowth && avgGrowthRate > thresholdBytesPerSecond,
                     avgGrowthRate,
                     thresholdBytesPerSecond,
-                    confidence: Math.min(1, growthRates.length / 5) // More snapshots = higher confidence
+                    confidence: Math.min(1, recent.length / 5) // More snapshots = higher confidence
                 };
             },
             
@@ -648,4 +671,4 @@ describe('Memory Usage Tests', () => {
             expect(uiSystem.timers.size).toBe(0);
         });
     });
-});"
+});

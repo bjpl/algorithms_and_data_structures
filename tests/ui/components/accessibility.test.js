@@ -310,7 +310,7 @@ describe('Accessibility Compliance Tests', () => {
             summaryProvider.announceSummary(longContent);
 
             expect(screenReaderMock.announcements[0].text).toContain('Content summary');
-            expect(screenReaderMock.announcements[0].text).toMatch(/\\d+ words/);
+            expect(screenReaderMock.announcements[0].text).toMatch(/\d+ words/);
         });
     });
 
@@ -435,4 +435,4 @@ describe('Accessibility Compliance Tests', () => {
             expect(validator.validateSettings(invalidSettings).errors).toHaveLength(2);
         });
     });
-});"
+});

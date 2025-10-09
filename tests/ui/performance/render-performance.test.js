@@ -477,6 +477,9 @@ describe('Render Performance Tests', () => {
         test('should benchmark table rendering with different sizes', async () => {
             const testSizes = [10, 50, 100, 500];
             const benchmarks = [];
+
+            // This test runs multiple benchmark sessions with different sizes
+            // Each benchmark includes warm-up and measurement phases
             
             for (const size of testSizes) {
                 const testData = Array.from({ length: size }, (_, i) => ({
@@ -509,7 +512,7 @@ describe('Render Performance Tests', () => {
                 
                 expect(performanceRatio).toBeLessThan(dataRatio * 1.5); // Allow 50% overhead for scaling
             }
-        });
+        }, 30000); // Increased timeout for multiple benchmark sessions
 
         test('should maintain consistent performance over time', async () => {
             const menuItems = Array.from({ length: 5 }, (_, i) => ({
@@ -613,4 +616,4 @@ describe('Render Performance Tests', () => {
             expect(renderSystem.renderHistory).toHaveLength(finalHistoryLength);
         });
     });
-});"
+});

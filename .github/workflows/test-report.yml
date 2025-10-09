@@ -1,0 +1,171 @@
+name: Test Report
+
+on:
+  workflow_run:
+    workflows: ["CI Pipeline"]
+    types:
+      - completed
+
+permissions:
+  contents: read
+  actions: read
+  checks: write
+  pull-requests: write
+
+jobs:
+  test-report:
+    name: Generate Test Report
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion != 'cancelled' }}
+    steps:
+      - name: Download test results
+        uses: actions/download-artifact@v4
+        with:
+          name: test-results-node-20
+          path: test-results/
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ github.event.workflow_run.id }}
+
+      - name: Download coverage reports
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage-report-node-20
+          path: coverage/
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ github.event.workflow_run.id }}
+
+      - name: Publish test results
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        if: always()
+        with:
+          files: test-results/junit.xml
+          check_name: Test Results
+          comment_mode: always
+          compare_to_earlier_commit: true
+
+      - name: Generate coverage summary
+        id: coverage
+        run: |
+          if [ -f coverage/coverage-summary.json ]; then
+            echo "Coverage report found"
+            COVERAGE=$(node -pe "
+              const data = require('./coverage/coverage-summary.json');
+              const total = data.total;
+              \`Lines: \${total.lines.pct}% | Branches: \${total.branches.pct}% | Functions: \${total.functions.pct}% | Statements: \${total.statements.pct}%\`
+            ")
+            echo "coverage_summary=$COVERAGE" >> $GITHUB_OUTPUT
+
+            LINES_PCT=$(node -pe "require('./coverage/coverage-summary.json').total.lines.pct")
+            BRANCHES_PCT=$(node -pe "require('./coverage/coverage-summary.json').total.branches.pct")
+            FUNCTIONS_PCT=$(node -pe "require('./coverage/coverage-summary.json').total.functions.pct")
+            STATEMENTS_PCT=$(node -pe "require('./coverage/coverage-summary.json').total.statements.pct")
+
+            echo "lines_pct=$LINES_PCT" >> $GITHUB_OUTPUT
+            echo "branches_pct=$BRANCHES_PCT" >> $GITHUB_OUTPUT
+            echo "functions_pct=$FUNCTIONS_PCT" >> $GITHUB_OUTPUT
+            echo "statements_pct=$STATEMENTS_PCT" >> $GITHUB_OUTPUT
+          else
+            echo "No coverage report found"
+            echo "coverage_summary=No coverage data available" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Comment PR with test results
+        uses: actions/github-script@v7
+        if: github.event.workflow_run.event == 'pull_request'
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const linesPct = parseFloat('${{ steps.coverage.outputs.lines_pct }}') || 0;
+            const branchesPct = parseFloat('${{ steps.coverage.outputs.branches_pct }}') || 0;
+            const functionsPct = parseFloat('${{ steps.coverage.outputs.functions_pct }}') || 0;
+            const statementsPct = parseFloat('${{ steps.coverage.outputs.statements_pct }}') || 0;
+            const threshold = 70;
+            const allPassing = linesPct >= threshold && branchesPct >= threshold && functionsPct >= threshold && statementsPct >= threshold;
+            const statusEmoji = allPassing ? '✅' : '⚠️';
+            const statusText = allPassing ? 'All thresholds passed!' : 'Some thresholds below 70%';
+            const createBar = (pct) => { const filled = Math.round(pct / 5); const empty = 20 - filled; return '█'.repeat(filled) + '░'.repeat(empty); };
+            const checkMark = '✅'; const crossMark = '❌';
+            const linesStatus = linesPct >= threshold ? checkMark : crossMark;
+            const branchesStatus = branchesPct >= threshold ? checkMark : crossMark;
+            const functionsStatus = functionsPct >= threshold ? checkMark : crossMark;
+            const statementsStatus = statementsPct >= threshold ? checkMark : crossMark;
+            let comment = '## ' + statusEmoji + ' Test Results & Coverage Report\n\n';
+            comment += '### Coverage Summary\n' + statusText + '\n\n';
+            comment += '| Metric | Coverage | Visual | Status |\n';
+            comment += '|--------|----------|--------|--------|\n';
+            comment += '| Lines | ' + linesPct.toFixed(2) + '% | ' + createBar(linesPct) + ' | ' + linesStatus + ' |\n';
+            comment += '| Branches | ' + branchesPct.toFixed(2) + '% | ' + createBar(branchesPct) + ' | ' + branchesStatus + ' |\n';
+            comment += '| Functions | ' + functionsPct.toFixed(2) + '% | ' + createBar(functionsPct) + ' | ' + functionsStatus + ' |\n';
+            comment += '| Statements | ' + statementsPct.toFixed(2) + '% | ' + createBar(statementsPct) + ' | ' + statementsStatus + ' |\n\n';
+            comment += '**Threshold:** 70% minimum required for all metrics\n\n';
+            comment += '### Test Execution\n';
+            comment += '- **Workflow:** ${{ github.event.workflow_run.name }}\n';
+            comment += '- **Status:** ${{ github.event.workflow_run.conclusion }}\n';
+            comment += '- **Commit:** ${{ github.event.workflow_run.head_sha }}\n';
+            comment += '- **Node.js:** 18, 20 (matrix)\n\n';
+            comment += '[View full workflow run](${{ github.event.workflow_run.html_url }})\n\n';
+            comment += '*Report generated by CI Pipeline*';
+            const pulls = await github.rest.repos.listPullRequestsAssociatedWithCommit({ owner: context.repo.owner, repo: context.repo.repo, commit_sha: '${{ github.event.workflow_run.head_sha }}' });
+            if (pulls.data.length > 0) {
+              const prNumber = pulls.data[0].number;
+              const comments = await github.rest.issues.listComments({ owner: context.repo.owner, repo: context.repo.repo, issue_number: prNumber });
+              const botComment = comments.data.find(c => c.user.type === 'Bot' && c.body.includes('Test Results & Coverage Report'));
+              if (botComment) { await github.rest.issues.updateComment({ owner: context.repo.owner, repo: context.repo.repo, comment_id: botComment.id, body: comment }); }
+              else { await github.rest.issues.createComment({ owner: context.repo.owner, repo: context.repo.repo, issue_number: prNumber, body: comment }); }
+            }
+
+      - name: Upload coverage to artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: final-coverage-report
+          path: coverage/
+          retention-days: 30
+
+      - name: Generate coverage badge data
+        if: github.event.workflow_run.event == 'push' && github.event.workflow_run.head_branch == 'main'
+        run: |
+          if [ -f coverage/coverage-summary.json ]; then
+            LINES_PCT=$(node -pe "require('./coverage/coverage-summary.json').total.lines.pct")
+            echo "Coverage: $LINES_PCT%"
+
+            # Create badge data file
+            mkdir -p .github/badges
+            echo "{\"schemaVersion\": 1, \"label\": \"coverage\", \"message\": \"${LINES_PCT}%\", \"color\": \"$([ $(echo "$LINES_PCT >= 70" | bc -l) -eq 1 ] && echo "brightgreen" || echo "orange")\"}" > .github/badges/coverage.json
+          fi
+
+  # Coverage report for main branch
+  coverage-main:
+    name: Coverage Report (Main)
+    runs-on: ubuntu-latest
+    if: github.event.workflow_run.event == 'push' && github.event.workflow_run.head_branch == 'main'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download coverage reports
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage-report-node-20
+          path: coverage/
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ github.event.workflow_run.id }}
+
+      - name: Display coverage summary
+        run: |
+          echo "## Coverage Report for Main Branch" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ -f coverage/coverage-summary.json ]; then
+            node -e "
+              const data = require('./coverage/coverage-summary.json');
+              const total = data.total;
+              console.log('| Metric | Coverage |');
+              console.log('|--------|----------|');
+              console.log(\`| Lines | \${total.lines.pct}% (\${total.lines.covered}/\${total.lines.total}) |\`);
+              console.log(\`| Branches | \${total.branches.pct}% (\${total.branches.covered}/\${total.branches.total}) |\`);
+              console.log(\`| Functions | \${total.functions.pct}% (\${total.functions.covered}/\${total.functions.total}) |\`);
+              console.log(\`| Statements | \${total.statements.pct}% (\${total.statements.covered}/\${total.statements.total}) |\`);
+            " >> $GITHUB_STEP_SUMMARY
+          else
+            echo "No coverage data available" >> $GITHUB_STEP_SUMMARY
+          fi

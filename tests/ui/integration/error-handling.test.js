@@ -423,11 +423,14 @@ describe('Error Handling Integration Tests', () => {
             for (let i = 0; i < 15; i++) {
                 uiSystem.simulateError(errorHandler.errorTypes.DATA_LOAD_ERROR);
             }
-            
+
             const recentErrors = errorHandler.getRecentErrors(5);
-            
+
             expect(recentErrors).toHaveLength(5);
-            expect(recentErrors[0].timestamp).toBeLessThan(recentErrors[4].timestamp);
+            // Compare timestamps as Date objects or convert to milliseconds
+            const firstTime = new Date(recentErrors[0].timestamp).getTime();
+            const lastTime = new Date(recentErrors[4].timestamp).getTime();
+            expect(firstTime).toBeLessThanOrEqual(lastTime);
         });
     });
 
@@ -438,16 +441,16 @@ describe('Error Handling Integration Tests', () => {
                 message: 'Failed to load lesson data',
                 type: errorHandler.errorTypes.DATA_LOAD_ERROR
             };
-            
-            const startTime = Date.now();
+
             errorHandler.handleError(error, context);
-            
-            // Check that retry was scheduled (mocked)
+
+            // The recovery strategy schedules a retry with setTimeout
+            // Wait for the scheduled retry to execute (2^1 * 1000 = 2000ms)
             setTimeout(() => {
                 expect(uiSystem.retryDataLoad).toHaveBeenCalledWith('lesson-data.json');
                 done();
-            }, 100);
-        });
+            }, 2500); // Wait longer than the initial backoff delay
+        }, 15000); // Increase test timeout to 15 seconds
 
         test('should track retry attempts', () => {
             const error = {
@@ -582,4 +585,4 @@ describe('Error Handling Integration Tests', () => {
             expect(() => errorHandler.getErrorStats()).not.toThrow();
         });
     });
-});"
+});

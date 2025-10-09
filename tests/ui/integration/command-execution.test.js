@@ -92,7 +92,13 @@ describe('Command Execution Integration Tests', () => {
                         
                         // Auto-save progress if enabled
                         if (context.state.settings.autoSave) {
-                            await context.saveProgress();
+                            const filename = 'progress.json';
+                            const data = {
+                                progress: Object.fromEntries(context.state.progress),
+                                settings: context.state.settings,
+                                savedAt: new Date().toISOString()
+                            };
+                            await mockFileSystem.write(filename, JSON.stringify(data, null, 2));
                         }
                         
                         return {
@@ -147,7 +153,10 @@ describe('Command Execution Integration Tests', () => {
                         // Type conversion
                         let convertedValue = value;
                         if (setting === 'showHints' || setting === 'autoSave') {
-                            convertedValue = value === 'true' || value === '1';
+                            convertedValue = value === 'true' || value === '1' || value === true;
+                            if (value === 'false' || value === '0' || value === false) {
+                                convertedValue = false;
+                            }
                         }
                         
                         context.state.settings[setting] = convertedValue;
@@ -287,28 +296,29 @@ describe('Command Execution Integration Tests', () => {
                     this.state.commandQueue.push(commandLine);
                     return { success: true, message: 'Command queued', queued: true };
                 }
-                
+
                 this.state.isExecuting = true;
-                
+
+                // Add to history first, before any errors can occur
+                this.state.history.push({
+                    command: commandLine,
+                    timestamp: Date.now(),
+                    status: 'executing'
+                });
+
                 try {
-                    const parts = commandLine.trim().split(/\\s+/);
+                    const parts = commandLine.trim().split(/\s+/);
                     const commandName = parts[0];
                     const args = parts.slice(1);
-                    
+
                     const command = this.commands[commandName];
                     if (!command) {
                         throw new Error(`Unknown command: ${commandName}`);
                     }
-                    
+
                     if (command.requiresArgs && args.length === 0) {
                         throw new Error(`Command '${commandName}' requires arguments. Usage: ${command.usage}`);
                     }
-                    
-                    this.state.history.push({
-                        command: commandLine,
-                        timestamp: Date.now(),
-                        status: 'executing'
-                    });
                     
                     const result = await command.execute(args, this);
                     

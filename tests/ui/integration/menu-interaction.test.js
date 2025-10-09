@@ -561,4 +561,4 @@ describe('Menu Interaction Integration Tests', () => {
             expect(menuPath).toContain('Arrays & Lists');
         });
     });
-});"
+});
