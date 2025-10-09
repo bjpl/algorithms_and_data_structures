@@ -321,6 +321,89 @@
     END INSTRUCTIONS - COMPLIANCE REQUIRED
 ═══════════════════════════════════════════════════════
 
+
+---
+
+## 🏗️ ARCHITECTURAL ENFORCEMENT CHECKLIST
+
+Before implementing any feature or making significant changes, verify compliance with:
+
+### Design Patterns (MUST FOLLOW)
+- [ ] **Command Pattern** for CLI commands (inherit from `BaseCommand`)
+- [ ] **Repository Pattern** for data access (inherit from `BaseRepository`)
+- [ ] **Service Layer** for business logic orchestration
+- [ ] **Plugin Architecture** for extensible features
+- [ ] **Factory Pattern** for complex object creation
+- [ ] **Component-Based UI** for terminal interfaces
+
+### SOLID Principles (MANDATORY)
+- [ ] **Single Responsibility**: Each class has ONE reason to change
+- [ ] **Open/Closed**: Open for extension, closed for modification
+- [ ] **Liskov Substitution**: Subclasses substitutable for base classes
+- [ ] **Interface Segregation**: Specific interfaces, not general ones
+- [ ] **Dependency Inversion**: Depend on abstractions, inject dependencies
+
+### Code Organization (REQUIRED)
+- [ ] Files under **500 lines** (exceptions must be documented)
+- [ ] No circular dependencies
+- [ ] Proper directory structure (`src/commands/`, `src/models/`, etc.)
+- [ ] Naming conventions followed (see [ARCHITECTURE_GUIDELINES.md](docs/ARCHITECTURE_GUIDELINES.md))
+- [ ] Type hints on all function signatures
+- [ ] Docstrings on all public methods
+
+### Testing Requirements (MUST HAVE)
+- [ ] **TDD followed** for new features (test-first)
+- [ ] Unit tests for all public methods
+- [ ] Integration tests for cross-layer operations
+- [ ] **Coverage ≥80%** for new code
+- [ ] No flaky tests (deterministic)
+
+### Security Checklist (CRITICAL)
+- [ ] **No secrets committed** (use environment variables)
+- [ ] Input validation for user inputs
+- [ ] Parameterized queries (prevent SQL injection)
+- [ ] Path validation (prevent directory traversal)
+- [ ] Dependencies scanned for vulnerabilities
+
+### Documentation (MANDATORY)
+- [ ] Module docstrings present
+- [ ] Function docstrings with params, returns, raises
+- [ ] README updated for user-facing changes
+- [ ] **ADR created** for significant architectural decisions
+- [ ] CHANGELOG updated
+
+### Quality Gates (AUTOMATED)
+- [ ] Linting passes (pylint ≥8.0, flake8, ESLint)
+- [ ] Type checking passes (mypy 0 errors)
+- [ ] All tests pass (pytest, Jest)
+- [ ] Coverage threshold met (≥80%)
+- [ ] Security scans pass (bandit, safety)
+
+### Review Before Commit
+- [ ] Self-reviewed using [Code Quality Standards](docs/CODE_QUALITY_STANDARDS.md)
+- [ ] Ran `black`, `isort`, `pylint` locally
+- [ ] Tested manually in development environment
+- [ ] Checked for anti-patterns (see CODE_QUALITY_STANDARDS.md)
+- [ ] Verified backward compatibility
+
+**Quick References**:
+- [Architecture Guidelines](docs/ARCHITECTURE_GUIDELINES.md) - Patterns and principles
+- [Code Quality Standards](docs/CODE_QUALITY_STANDARDS.md) - Review checklist and metrics
+- [ADR Index](docs/adr/README.md) - Architectural decisions
+- [Large File Refactoring](docs/LARGE_FILE_REFACTORING_STRATEGY.md) - File size violations
+
+**Current File Size Violations** (MUST REFACTOR):
+```
+src/ui/enhanced_interactive.py     - 1665 lines
+src/commands/progress_commands.py  - 1584 lines
+src/commands/admin_commands.py     - 1478 lines
+src/commands/search_commands.py    - 1397 lines
+src/commands/content_commands.py   - 1328 lines
+src/commands/curriculum_commands.py- 1223 lines
+src/ui/interactive.py              - 1133 lines
+src/ui/unified_formatter.py        - 1069 lines
+src/notes_manager.py               - 1068 lines
+```
 ---
 
 ## 🎯 PROJECT CONFIGURATION
