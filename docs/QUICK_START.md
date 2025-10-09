@@ -1,18 +1,66 @@
 # Quick Start Guide - Algorithms & Data Structures CLI
 
+> **Platform Choice**: This project supports **both Node.js and Python**. Choose the platform that fits your needs best!
+
 ## 🚀 Fastest Way to Start Learning
 
-### Option 1: Windows Users (Simplest)
-Just double-click the `learn.bat` file in your project folder!
+### Option 1: Node.js Platform (Interactive Modules) ⭐ RECOMMENDED
 
-### Option 2: Command Line (Any OS)
+**Best for**: Interactive learning, modern CLI experience, real-time visualization
+
 ```bash
-python scripts/run_offline.py
+# Prerequisite: Node.js 18+
+node --version  # Verify you have Node.js 18 or higher
+
+# One-time setup
+npm install
+
+# Launch the platform
+npm start
+
+# Or try specific modules
+npm run arrays      # Learn arrays through bookshelf analogy
+npm run sorting     # Master sorting algorithms
+npm run trees       # Understand tree structures
 ```
 
-### Option 3: Standard Launch
+### Option 2: Python Platform (Offline Learning)
+
+**Best for**: Offline study, data processing, machine learning features
+
+#### Windows Users (Simplest)
+Just double-click the `learn.bat` file in your project folder!
+
+#### Command Line (Any OS)
 ```bash
+# Prerequisite: Python 3.9+
+python --version  # Verify you have Python 3.9 or higher
+
+# One-time setup
+pip install -r requirements.txt
+
+# Launch the platform
+python scripts/run_offline.py
+
+# Alternative launch method
 python cli.py --offline
+```
+
+### Option 3: SPARC Development Mode (For Developers)
+
+**Best for**: Contributing to the project, using multi-agent workflows
+
+```bash
+# Setup MCP servers first
+claude mcp add claude-flow npx claude-flow@alpha mcp start
+
+# Explore SPARC commands
+npx claude-flow sparc modes
+
+# Use agent-assisted development
+npx claude-flow sparc tdd "your feature"
+
+# See CLAUDE.md for comprehensive development guidelines
 ```
 
 ## 📚 What You Can Do
@@ -51,22 +99,41 @@ Each lesson includes:
 
 ## 🔧 Troubleshooting
 
-If you see any errors:
+### Node.js Platform Issues
 
-1. Make sure Python 3.7+ is installed:
-   ```bash
-   python --version
-   ```
+**Error: "node: command not found"**
+- Install Node.js 18+ from [nodejs.org](https://nodejs.org/)
+- Verify installation: `node --version`
 
-2. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
+**Error: "npm install" fails**
+- Try: `npm install --force`
+- Or delete `node_modules` and `package-lock.json`, then retry
 
-3. If still having issues, run in debug mode:
-   ```bash
-   python cli.py --offline --debug
-   ```
+**Modules don't run**
+- Ensure you ran `npm install` first
+- Check Node.js version is 18 or higher
+
+### Python Platform Issues
+
+**Error: "python: command not found"**
+- Install Python 3.9+ from [python.org](https://www.python.org/)
+- Verify installation: `python --version` or `python3 --version`
+
+**Error: "No module named X"**
+- Install dependencies: `pip install -r requirements.txt`
+- Try: `pip3 install -r requirements.txt` on some systems
+
+**learn.bat doesn't work**
+- Make sure you're on Windows
+- Run from command line: `python scripts/run_offline.py`
+
+### SPARC/MCP Issues
+
+**MCP tools not available**
+- See [MCP Setup Guide](MCP_SETUP_GUIDE.md) for detailed instructions
+- Verify MCP servers: `claude mcp list`
+
+**For more help**: See [User Guide](USER_GUIDE.md) or [Developer Guide](DEVELOPER_GUIDE.md)
 
 ## 📝 Features That Work Offline
 

@@ -564,5 +564,328 @@ Task("Tester", "Add missing test coverage", "tester")
 
 ---
 
+## 🚨 Error Handling & Common Failures
+
+### When SPARC Commands Fail
+
+#### Error: `claude-flow: command not found`
+
+**Cause**: MCP server not installed or not in PATH
+
+**Solution**:
+```bash
+# Install Claude Flow MCP
+claude mcp add claude-flow npx claude-flow@alpha mcp start
+
+# Verify installation
+claude mcp list
+
+# Test it works
+npx claude-flow sparc modes
+```
+
+**See**: [MCP Setup Guide](MCP_SETUP_GUIDE.md) for detailed troubleshooting
+
+---
+
+#### Error: `Agent spawn failed` or `Task orchestration timeout`
+
+**Cause**: MCP server not running or agent coordination issues
+
+**Solution**:
+```bash
+# Check MCP server status
+claude mcp status
+
+# Restart if needed
+claude mcp restart claude-flow
+
+# If using Ruv-Swarm
+claude mcp restart ruv-swarm
+
+# Enable debug logging
+export CLAUDE_FLOW_DEBUG=true
+npx claude-flow sparc run specification "test"
+```
+
+**Alternative**: Fall back to manual development without agents
+
+---
+
+#### Error: `Specification phase failed - unclear requirements`
+
+**Cause**: Task description too vague or missing context
+
+**Bad Example**:
+```bash
+npx claude-flow sparc run specification "add feature"  # ❌ Too vague
+```
+
+**Good Example**:
+```bash
+npx claude-flow sparc run specification "
+Add user authentication feature:
+- Email/password login
+- JWT tokens
+- Password reset via email
+- Session management
+- OAuth integration (Google, GitHub)
+Target: Web application with React frontend and Node.js backend
+"  # ✅ Clear, detailed
+```
+
+**Recovery**:
+1. Add more context and constraints
+2. Use `researcher` agent first to gather requirements
+3. Break into smaller, well-defined tasks
+
+---
+
+#### Error: `TDD workflow generated failing tests`
+
+**Cause**: This is EXPECTED in TDD! Red → Green → Refactor
+
+**What to do**:
+```bash
+# 1. Tests fail (expected)
+npm test  # ❌ Failures are good at this stage
+
+# 2. Implement code to pass tests
+# (Edit your implementation files)
+
+# 3. Tests pass
+npm test  # ✅ All pass
+
+# 4. Refactor if needed
+# (Improve code while keeping tests green)
+
+# 5. Tests still pass
+npm test  # ✅ Still passing
+```
+
+**This is correct TDD workflow** - don't panic when tests fail initially!
+
+---
+
+#### Error: `Architecture phase suggests unfamiliar technology`
+
+**Cause**: Agent selected technology stack you're not comfortable with
+
+**Solution**:
+```bash
+# Be specific about your tech stack in the prompt
+npx claude-flow sparc run architect "
+Design authentication system
+CONSTRAINTS:
+- Must use Express.js (not Fastify or Koa)
+- Must use PostgreSQL (not MongoDB)
+- Must use JWT (not session cookies)
+- No microservices - monolithic architecture preferred
+"
+```
+
+**Lesson**: Add constraints upfront to guide architecture decisions
+
+---
+
+### Common Gotchas
+
+#### Gotcha #1: Forgetting to Batch Operations
+
+**❌ Wrong (Multiple Messages)**:
+```javascript
+// Message 1
+Task("Research agent", "Research authentication")
+
+// Message 2
+Task("Coder agent", "Implement auth")
+
+// Message 3
+TodoWrite([...todos])
+```
+
+**✅ Correct (Single Message)**:
+```javascript
+// Single message with all operations
+Task("Research agent", "Research authentication")
+Task("Coder agent", "Implement based on research")
+Task("Tester agent", "Write tests for auth")
+TodoWrite([...todos])  // All todos at once
+```
+
+**Why**: CLAUDE.md [MANDATORY] requires concurrent operations in single message
+
+---
+
+#### Gotcha #2: Not Reading Agent Capabilities First
+
+**❌ Wrong**:
+```javascript
+Task("Mystery Agent", "Do something", "agent-i-guessed")  // May not exist
+```
+
+**✅ Correct**:
+```javascript
+// First, check available agents
+Read("docs/AGENT_REFERENCE.md")
+
+// Then use appropriate agent
+Task("Backend Developer", "Build REST API", "backend-dev")  // Verified agent
+```
+
+**Rule**: Always verify agent exists before using (see [AGENT_REFERENCE.md](AGENT_REFERENCE.md))
+
+---
+
+#### Gotcha #3: Skipping Specification Phase
+
+**❌ Wrong**:
+```bash
+# Jump straight to coding
+npx claude-flow sparc tdd "build something"  # What are we building?
+```
+
+**✅ Correct**:
+```bash
+# Start with specification
+npx claude-flow sparc run specification "detailed requirements"
+
+# Review the spec
+# THEN proceed to implementation
+
+npx claude-flow sparc tdd "implement based on spec"
+```
+
+**Why**: Specification prevents wasted effort and rework
+
+---
+
+#### Gotcha #4: Ignoring Test Failures
+
+**❌ Wrong**:
+```bash
+npm test  # 5 failures
+# "I'll fix that later..." (narrator: they didn't)
+git commit -m "added feature"
+```
+
+**✅ Correct**:
+```bash
+npm test  # 5 failures
+
+# Fix ALL failures before committing
+# ... fix code ...
+
+npm test  # ✅ All pass
+git commit -m "added feature with tests"
+```
+
+**Rule**: CLAUDE.md [MANDATORY-8] requires tests before considering work complete
+
+---
+
+### Debugging SPARC Workflows
+
+#### Enable Debug Mode
+
+```bash
+# Set debug environment variable
+export CLAUDE_FLOW_DEBUG=true
+export CLAUDE_FLOW_LOG_LEVEL=debug
+
+# Run SPARC command
+npx claude-flow sparc run specification "test"
+
+# Output will include detailed logs
+```
+
+#### Check MCP Logs
+
+```bash
+# View Claude Flow logs
+claude mcp logs claude-flow
+
+# View Ruv-Swarm logs (if using)
+claude mcp logs ruv-swarm
+
+# Tail logs in real-time
+claude mcp logs claude-flow --follow
+```
+
+#### Verify Agent Coordination
+
+```bash
+# Check swarm status
+npx claude-flow@alpha swarm status
+
+# List active agents
+npx claude-flow@alpha agent list
+
+# Check task status
+npx claude-flow@alpha task status
+```
+
+---
+
+### Recovery Procedures
+
+#### When Everything Goes Wrong
+
+**Emergency Recovery Steps**:
+
+```bash
+# 1. Stop all MCP servers
+claude mcp stop-all
+
+# 2. Clear any cached state
+rm -rf ~/.claude/mcp-cache/  # Unix/Mac
+del /F /Q "%USERPROFILE%\.claude\mcp-cache\*"  # Windows
+
+# 3. Restart MCP servers
+claude mcp restart claude-flow
+claude mcp restart ruv-swarm  # If using
+
+# 4. Verify health
+claude mcp status
+npx claude-flow sparc modes
+
+# 5. Try simple command
+npx claude-flow sparc run specification "simple test"
+```
+
+#### Fall Back to Manual Development
+
+**If SPARC agents aren't working, you can still develop manually**:
+
+```bash
+# Traditional development workflow
+npm test  # Run tests
+npm run lint  # Check code quality
+npm run build  # Build project
+
+# Document what you're doing in comments
+# Follow TDD principles manually
+# Reference CLAUDE.md for guidelines
+```
+
+**Remember**: SPARC is a tool to enhance development, not a requirement. Manual development following TDD principles is always valid.
+
+---
+
+## 📖 Additional Resources
+
+**For more help**:
+- **[CLAUDE.md](../CLAUDE.md)** - Mandatory development directives
+- **[MCP Setup Guide](MCP_SETUP_GUIDE.md)** - Detailed MCP troubleshooting
+- **[Agent Reference](AGENT_REFERENCE.md)** - Complete agent catalog
+- **[Developer Guide](DEVELOPER_GUIDE.md)** - Development best practices
+
+**Community Support**:
+- GitHub Issues - Report SPARC-related problems
+- GitHub Discussions - Ask questions about workflows
+- CLAUDE.md [MANDATORY-5] - Ask for clarification when uncertain
+
+---
+
 **For SPARC command reference, see CLAUDE.md**
 **For agent capabilities, see docs/AGENT_REFERENCE.md**
