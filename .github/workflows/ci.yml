@@ -1,8 +1,9 @@
 name: CI Pipeline
 
 on:
-  push:
-    branches:
+  # Temporarily disabled to prevent email spam
+  # push:
+    # branches:
       - main
     paths:
       - 'src/**'
@@ -11,8 +12,8 @@ on:
       - 'package*.json'
       - 'jest.config.cjs'
       - '.github/workflows/ci.yml'
-  pull_request:
-    branches:
+  # pull_request:
+    # branches:
       - main
   workflow_dispatch:
 

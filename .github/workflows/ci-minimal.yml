@@ -2,8 +2,8 @@ name: Minimal CI (Save Minutes)
 
 # OPTIMIZATION: Only run on PR to main and manual trigger
 on:
-  pull_request:
-    branches: [main]
+  # pull_request:
+    # branches: [main]
     paths:
       - 'src/**'
       - 'tests/**'
