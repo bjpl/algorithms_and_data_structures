@@ -1,34 +1,67 @@
-# Algorithms & Data Structures: Interactive Learning Platform
+# Algorithms and Data Structures: Interactive Learning Platform
 
-[![Node.js](https://img.shields.io/badge/Node.js-18%2B-green.svg)](https://nodejs.org/)
-[![Python](https://img.shields.io/badge/Python-3.9%2B-blue.svg)](https://python.org/)
-[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![SPARC](https://img.shields.io/badge/Built%20with-SPARC-purple.svg)](CLAUDE.md)
+A dual-platform learning system that teaches algorithms and data structures through intuitive everyday analogies and interactive CLI experiences.
 
-An innovative, **dual-platform** learning system that teaches algorithms and data structures through **intuitive everyday analogies** and **interactive CLI experiences**. Built using the **SPARC methodology** with **Claude Code** and **multi-agent orchestration**.
+## Table of Contents
+- [Overview](#overview)
+- [Features](#features)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Project Structure](#project-structure)
+- [Learning Modules](#learning-modules)
+- [Technology Stack](#technology-stack)
+- [Development](#development)
+- [Contributing](#contributing)
+- [License](#license)
 
-## 🌟 What Makes This Special
+## Overview
 
-- **🎭 Dual Platform**: Choose Node.js (interactive modules) or Python (offline learning + ML features)
-- **🧠 Everyday Analogies**: Complex algorithms explained through familiar concepts
-- **🤖 SPARC-Powered**: Developed using systematic Test-Driven Development methodology
-- **⚡ Multi-Agent Architecture**: Leverages Claude Code's agent-based development
-- **📊 Interactive Learning**: Hands-on exercises with real-time feedback
-- **🎯 Progress Tracking**: Your learning journey, visualized and saved
+An innovative dual-platform learning system that teaches algorithms and data structures through intuitive everyday analogies and interactive CLI experiences. Built using the SPARC methodology with Claude Code and multi-agent orchestration.
 
-## 🚀 Quick Start
+The platform offers two implementation options: Node.js for interactive modules and modern CLI experience, or Python for offline learning with machine learning features. Both platforms utilize systematic Test-Driven Development methodology for robust, maintainable code.
 
-### Option 1: Node.js Platform (Interactive Modules)
+## Features
 
-**Recommended for**: Interactive learning, modern CLI experience, visualization
+### For Learners
+- Intuitive analogies mapping complex concepts to real-world experiences
+- Interactive practice with hands-on coding challenges and instant feedback
+- Progress tracking with visual dashboard
+- Multiple difficulty levels from beginner to advanced
+- Comprehensive notes system
+
+### For Developers
+- SPARC methodology for systematic development
+- Multi-agent orchestration with researcher, coder, tester, and reviewer agents
+- MCP integration with Claude Flow, Ruv-Swarm, and Flow-Nexus
+- Test-driven development with comprehensive coverage
+- Clean architecture with modular, extensible codebase
+
+## Installation
+
+### Prerequisites
+- Node.js 18+ (for Node.js platform)
+- Python 3.9+ (for Python platform)
+- npm or yarn
+
+### Setup
 
 ```bash
-# Prerequisites: Node.js 18+
-node --version  # Verify version
+# Clone repository
+git clone https://github.com/bjpl/algorithms_and_data_structures.git
+cd algorithms_and_data_structures
 
 # Install dependencies
 npm install
 
+# Launch interactive platform
+npm start
+```
+
+## Usage
+
+### Node.js Platform (Interactive Modules)
+
+```bash
 # Launch interactive platform
 npm start
 
@@ -38,14 +71,9 @@ npm run trees       # Understand trees via organization charts
 npm run sorting     # Master sorting with music playlists
 ```
 
-### Option 2: Python Platform (Offline Learning + ML)
-
-**Recommended for**: Offline study, data processing, machine learning features
+### Python Platform (Offline Learning)
 
 ```bash
-# Prerequisites: Python 3.9+
-python --version  # Verify version
-
 # Install dependencies
 pip install -r requirements.txt
 
@@ -59,9 +87,7 @@ python scripts/run_offline.py
 python main.py
 ```
 
-### Option 3: SPARC Development Mode
-
-**For developers using Claude Code and multi-agent workflows:**
+### SPARC Development Mode
 
 ```bash
 # Setup MCP servers (required for SPARC features)
@@ -72,91 +98,91 @@ npx claude-flow sparc modes
 
 # Example: Agent-assisted feature development
 npx claude-flow sparc tdd "new hash table module"
-
-# See CLAUDE.md for comprehensive development guidelines
 ```
 
-## 📚 Learning Modules
+## Project Structure
+
+```
+algorithms_and_data_structures/
+├── src/                    # Source code
+├── tests/                  # Test suite
+├── docs/                   # Documentation
+│   ├── QUICK_START.md
+│   ├── USER_GUIDE.md
+│   ├── DEVELOPER_GUIDE.md
+│   ├── SPARC_EXAMPLES.md
+│   └── API_REFERENCE.md
+├── CLAUDE.md              # Development directives
+└── README.md              # Project overview
+```
+
+## Learning Modules
 
 ### Foundation
-- **🏗️ Mental Models** - How to think about algorithms (20-30 min)
+- Mental Models - How to think about algorithms (20-30 min)
 
 ### Data Structures
-- **📚 Arrays** - Organizing books on shelves (45 min)
-- **🚂 Linked Lists** - Train cars connected together (50 min)
-- **🍽️ Stacks** - Cafeteria plate dispensers (35 min)
-- **☕ Queues** - Coffee shop lines (35 min)
-- **🏢 Trees** - Organization charts & family trees (60 min)
-- **🗺️ Graphs** - City maps & social networks (70 min)
+- Arrays - Organizing books on shelves (45 min)
+- Linked Lists - Train cars connected together (50 min)
+- Stacks - Cafeteria plate dispensers (35 min)
+- Queues - Coffee shop lines (35 min)
+- Trees - Organization charts and family trees (60 min)
+- Graphs - City maps and social networks (70 min)
 
 ### Algorithms
-- **🎵 Sorting** - Organizing music playlists (55 min)
-- **📱 Searching** - Finding contacts in your phone (40 min)
-- **🪆 Recursion** - Russian nesting dolls (50 min)
-- **🚗 Dynamic Programming** - Optimizing road trips (75 min)
+- Sorting - Organizing music playlists (55 min)
+- Searching - Finding contacts in your phone (40 min)
+- Recursion - Russian nesting dolls (50 min)
+- Dynamic Programming - Optimizing road trips (75 min)
 
-## 🎯 Features
-
-### For Learners
-- **Intuitive Analogies**: Every concept mapped to real-world experiences
-- **Interactive Practice**: Hands-on coding challenges with instant feedback
-- **Progress Tracking**: Visual dashboard of your learning journey
-- **Multiple Difficulty Levels**: Beginner → Intermediate → Advanced
-- **Comprehensive Notes System**: Take notes as you learn
-
-### For Developers
-- **SPARC Methodology**: Systematic development using Specification → Pseudocode → Architecture → Refinement → Completion
-- **Multi-Agent Orchestration**: Leverage researcher, coder, tester, and reviewer agents
-- **MCP Integration**: Claude Flow, Ruv-Swarm, Flow-Nexus for advanced features
-- **Test-Driven Development**: Comprehensive test coverage with Jest
-- **Clean Architecture**: Modular, extensible, well-documented codebase
-
-## 🛠️ Technology Stack
+## Technology Stack
 
 ### Primary Platform (Node.js)
-- **Runtime**: Node.js 18+ with ES Modules
-- **UI Libraries**: Chalk 5.6 (CLI colors), Inquirer 9.3 (CLI interactions), cli-table3 0.6 (tables)
-- **Testing**: Jest 29.7 with comprehensive test coverage
-- **Development**: TypeScript 5.3 definitions, ESLint
+- Runtime: Node.js 18+ with ES Modules
+- UI Libraries: Chalk 5.6, Inquirer 9.3, cli-table3 0.6
+- Testing: Jest 29.7 with comprehensive test coverage
+- Development: TypeScript 5.3 definitions, ESLint
 
 ### Development Infrastructure
-- **Version Control**: Git with meaningful commits
-- **CI/CD**: GitHub Actions pipeline for automated testing
-- **Module System**: ESM (ES Modules) for modern JavaScript
-- **Documentation**: Technology stack analysis available
+- Version Control: Git with meaningful commits
+- CI/CD: GitHub Actions pipeline for automated testing
+- Module System: ESM (ES Modules) for modern JavaScript
+- Documentation: Technology stack analysis available
 
-## 📖 Documentation
+## Development
 
-### For Users
-- **[Quick Start Guide](docs/QUICK_START.md)** - Get running in 5 minutes
-- **[User Guide](docs/USER_GUIDE.md)** - Comprehensive learning guide
-- **[Practice Problems](docs/PRACTICAL_LEARNING_WORKFLOW.md)** - Hands-on exercises
+### Available Scripts
 
-### For Developers
-- **[CLAUDE.md](CLAUDE.md)** - **START HERE** - Mandatory development directives & SPARC methodology
-- **[Developer Guide](docs/DEVELOPER_GUIDE.md)** - Setup, architecture, contribution guidelines
-- **[SPARC Examples](docs/SPARC_EXAMPLES.md)** - Real-world SPARC workflow examples
-- **[Agent Reference](docs/AGENT_REFERENCE.md)** - 54 available agents and their capabilities
-- **[MCP Setup Guide](docs/MCP_SETUP_GUIDE.md)** - Configure Claude Flow, Ruv-Swarm, Flow-Nexus
-- **[Contributing Guide](.github/CONTRIBUTING.md)** - How to contribute effectively
+```bash
+# Development
+npm run dev              # Start dev server
+npm run build            # Build for production
+npm run preview          # Preview production build
 
-### Technical Reference
-- **[API Reference](docs/API_REFERENCE.md)** - Complete API documentation
-- **[Architecture Guide](docs/ARCHITECTURE.md)** - System design and patterns
-- **[Testing Guide](docs/TESTING_DOCUMENTATION.md)** - Test strategy and best practices
+# Testing
+npm run test             # Run tests
+npm run test:coverage    # Generate coverage report
+npm run test:watch       # Run tests in watch mode
 
-## 🤝 Contributing
+# Code Quality
+npm run lint             # Lint code
+npm run lint:fix         # Fix linting issues
+npm run typecheck        # Type checking
+```
 
-We welcome contributions! This project uses **SPARC methodology** with **multi-agent orchestration** for systematic development.
+## Contributing
 
-**Key Guidelines:**
-1. **Read [CLAUDE.md](CLAUDE.md) first** - Contains mandatory directives
-2. **Use SPARC workflow** - See [docs/SPARC_EXAMPLES.md](docs/SPARC_EXAMPLES.md)
-3. **Leverage agents** - Use Task tool for parallel development
-4. **Test-Driven Development** - Write tests before implementation
-5. **Follow [Contributing Guide](.github/CONTRIBUTING.md)** - Detailed process
+Contributions are welcome. This project uses SPARC methodology with multi-agent orchestration for systematic development.
 
-**Quick Contribution Workflow:**
+### Key Guidelines
+1. Read CLAUDE.md first - Contains mandatory directives
+2. Use SPARC workflow
+3. Leverage agents using Task tool for parallel development
+4. Test-driven development - Write tests before implementation
+5. Follow Contributing Guide
+
+### Quick Contribution Workflow
+
 ```bash
 # Fork and clone the repository
 git clone https://github.com/bjpl/algorithms_and_data_structures.git
@@ -174,67 +200,6 @@ python -m pytest  # Python tests
 # Submit pull request
 ```
 
-## 🎓 Learning Philosophy
+## License
 
-This platform is built on three core principles:
-
-1. **Analogies Over Abstractions**: Every algorithm maps to something you already understand
-2. **Active Over Passive**: Learn by doing, not just reading
-3. **Progressive Over Overwhelming**: Start simple, add complexity gradually
-
-**Example**: Arrays aren't "contiguous memory blocks with O(1) access" - they're **bookshelves where you can instantly grab any book if you know its position**.
-
-## 🌐 SPARC Methodology
-
-This project demonstrates **SPARC** (Specification, Pseudocode, Architecture, Refinement, Completion) methodology in action:
-
-- **84.8% SWE-Bench solve rate** - Proven systematic approach
-- **Multi-agent coordination** - Parallel development with researcher, coder, tester agents
-- **Test-Driven Development** - Tests first, implementation second
-- **Comprehensive documentation** - Every decision explained
-
-**Learn more**: See [CLAUDE.md](CLAUDE.md) for full methodology documentation
-
-## 📊 Project Stats
-
-- **Active Development** - 1 commit in last 30 days
-- **Jest Testing Framework** - Comprehensive test suite (Jest 29.7)
-- **10 Module Categories** - Arrays, linked lists, trees, graphs, sorting, searching, recursion, dynamic programming, stacks, queues
-- **Interactive CLI Experience** - Built with Chalk 5.6, Inquirer 9.3, cli-table3 0.6
-- **Node.js ESM** - Modern ES Modules with TypeScript 5.3 definitions
-- **CI/CD Pipeline** - GitHub Actions configured for automated testing
-
-## 🔗 Quick Links
-
-- **📘 [Getting Started](docs/QUICK_START.md)** - Launch in 5 minutes
-- **🎯 [CLAUDE.md](CLAUDE.md)** - Development directives (developers start here!)
-- **🤖 [SPARC Examples](docs/SPARC_EXAMPLES.md)** - See SPARC methodology in action
-- **📚 [Full Documentation](docs/README.md)** - Complete documentation hub
-- **🐛 [Issue Tracker](https://github.com/bjpl/algorithms_and_data_structures/issues)** - Report bugs or request features
-
-## 📄 License
-
-MIT License - See [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- Built with **Claude Code** and **SPARC methodology**
-- Powered by **Claude Flow**, **Ruv-Swarm**, and **Flow-Nexus** MCP servers
-- Inspired by everyday experiences and real-world analogies
-- Community-driven development with multi-agent coordination
-
----
-
-**Ready to learn algorithms the intuitive way?** 🚀
-
-```bash
-# Node.js Platform
-npm start
-
-# Python Platform
-python scripts/run_offline.py
-
-# Or just double-click learn.bat (Windows)
-```
-
-**For developers**: Start with [CLAUDE.md](CLAUDE.md) to understand the SPARC methodology and mandatory development directives!
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
