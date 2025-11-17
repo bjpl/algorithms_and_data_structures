@@ -36,15 +36,64 @@ The platform offers two implementation options: Node.js for interactive modules 
 - Test-driven development with comprehensive coverage
 - Clean architecture with modular, extensible codebase
 
-## Installation
+## Technical Overview
 
-### Prerequisites
-- Node.js 18+ (for Node.js platform)
-- Python 3.9+ (for Python platform)
-- npm or yarn
+This project demonstrates educational software engineering through an innovative dual-platform learning system that makes complex computer science concepts accessible through everyday analogies and interactive experiences.
 
-### Setup
+**Key Technologies:**
+- Node.js 18+ with ES Modules for modern JavaScript runtime
+- Python 3.9+ for offline learning capabilities
+- React for interactive user interfaces
+- Chalk, Inquirer, and cli-table3 for rich CLI experiences
+- Jest 29.7 with comprehensive test coverage
+- SPARC methodology for systematic development
 
+**Implementation Highlights:**
+- Intuitive analogies mapping abstract data structures to real-world concepts
+- Interactive CLI with hands-on coding challenges and instant feedback
+- Multi-agent orchestration using researcher, coder, tester, and reviewer agents
+- Test-driven development with comprehensive test coverage
+- Clean architecture enabling platform-agnostic learning modules
+- Progressive difficulty levels from beginner to advanced
+
+## Exploring the Code
+
+The project showcases dual-platform architecture with modular design:
+
+```
+algorithms_and_data_structures/
+├── src/                    # Platform-agnostic source code
+├── tests/                  # Comprehensive test suite
+└── docs/                   # Educational documentation
+    ├── QUICK_START.md      # Getting started guide
+    ├── USER_GUIDE.md       # Learning path documentation
+    ├── DEVELOPER_GUIDE.md  # Technical implementation details
+    └── SPARC_EXAMPLES.md   # SPARC methodology examples
+```
+
+**Learning Modules Demonstrate:**
+- Mental Models - Algorithm thinking patterns (20-30 min)
+- Data Structures - Arrays, Linked Lists, Stacks, Queues, Trees, Graphs (35-70 min each)
+- Algorithms - Sorting, Searching, Recursion, Dynamic Programming (40-75 min each)
+
+**Development Practices:**
+- SPARC (Specification, Pseudocode, Architecture, Refinement, Completion) methodology
+- Multi-agent collaboration with MCP integration
+- Systematic Test-Driven Development approach
+- Clean code principles with modular, extensible architecture
+
+**For Technical Review:**
+
+Those interested in the implementation details can explore:
+- `/src` for interactive module implementations
+- `/tests` for TDD test suite
+- `/docs/DEVELOPER_GUIDE.md` for architecture decisions
+- `/docs/SPARC_EXAMPLES.md` for methodology examples
+
+<details>
+<summary>Local Development Setup (Optional)</summary>
+
+**Node.js Platform:**
 ```bash
 # Clone repository
 git clone https://github.com/bjpl/algorithms_and_data_structures.git
@@ -55,50 +104,32 @@ npm install
 
 # Launch interactive platform
 npm start
-```
-
-## Usage
-
-### Node.js Platform (Interactive Modules)
-
-```bash
-# Launch interactive platform
-npm start
 
 # Or try specific modules
-npm run arrays      # Learn arrays through bookshelf analogy
-npm run trees       # Understand trees via organization charts
-npm run sorting     # Master sorting with music playlists
+npm run arrays      # Arrays through bookshelf analogy
+npm run trees       # Trees via organization charts
+npm run sorting     # Sorting with music playlists
 ```
 
-### Python Platform (Offline Learning)
-
+**Python Platform (Offline Learning):**
 ```bash
 # Install dependencies
 pip install -r requirements.txt
 
-# Windows users - Double-click this file:
-learn.bat
-
-# Or run directly:
+# Run offline learning
 python scripts/run_offline.py
-
-# Alternative: Traditional CLI
-python main.py
 ```
 
-### SPARC Development Mode
-
+**SPARC Development Mode:**
 ```bash
-# Setup MCP servers (required for SPARC features)
-claude mcp add claude-flow npx claude-flow@alpha mcp start
-
 # Explore SPARC methodology
 npx claude-flow sparc modes
 
-# Example: Agent-assisted feature development
-npx claude-flow sparc tdd "new hash table module"
+# Example: Agent-assisted development
+npx claude-flow sparc tdd "new feature"
 ```
+
+</details>
 
 ## Project Structure
 
