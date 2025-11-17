@@ -159,7 +159,7 @@ We welcome contributions! This project uses **SPARC methodology** with **multi-a
 **Quick Contribution Workflow:**
 ```bash
 # Fork and clone the repository
-git clone https://github.com/YOUR_USERNAME/algorithms_and_data_structures.git
+git clone https://github.com/bjpl/algorithms_and_data_structures.git
 
 # Create feature branch
 git checkout -b feature/your-feature-name
@@ -210,7 +210,7 @@ This project demonstrates **SPARC** (Specification, Pseudocode, Architecture, Re
 - **🎯 [CLAUDE.md](CLAUDE.md)** - Development directives (developers start here!)
 - **🤖 [SPARC Examples](docs/SPARC_EXAMPLES.md)** - See SPARC methodology in action
 - **📚 [Full Documentation](docs/README.md)** - Complete documentation hub
-- **🐛 [Issue Tracker](https://github.com/your-org/algorithms_and_data_structures/issues)** - Report bugs or request features
+- **🐛 [Issue Tracker](https://github.com/bjpl/algorithms_and_data_structures/issues)** - Report bugs or request features
 
 ## 📄 License
 
