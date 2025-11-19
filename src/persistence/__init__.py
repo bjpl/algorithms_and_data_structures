@@ -7,7 +7,7 @@ migrations, and backup/restore functionality.
 """
 
 from .db_manager import DatabaseManager
-from .storage_backend import StorageBackend, JSONBackend, SQLiteBackend, PostgreSQLBackend
+from .backends import StorageBackend, JSONBackend, SQLiteBackend, PostgreSQLBackend
 from .repositories.base import BaseRepository
 from .repositories.curriculum_repo import CurriculumRepository
 from .repositories.content_repo import ContentRepository
