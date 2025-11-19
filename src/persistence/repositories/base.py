@@ -10,7 +10,7 @@ from typing import Dict, Any, List, Optional, TypeVar, Generic, Union
 from datetime import datetime
 import uuid
 
-from ..storage_backend import StorageBackend
+from ..backends import StorageBackend
 from ..exceptions import RepositoryError, ValidationError
 
 
