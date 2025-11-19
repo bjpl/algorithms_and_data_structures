@@ -10,7 +10,8 @@ from typing import List, Tuple, Optional, Callable, Any, Dict
 from dataclasses import dataclass
 from enum import Enum
 
-from .formatter import TerminalFormatter, Color, Theme
+from .formatter_compat import TerminalFormatter
+from .unified_formatter import Color, Theme
 
 
 class NavigationMode(Enum):
