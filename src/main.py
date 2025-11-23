@@ -13,7 +13,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 from app import AdaptiveLearningApp
 from cli_engine import CLIEngine
-from ui.formatter_compat import TerminalFormatter
+from ui.formatter import TerminalFormatter
 from config import Config
 
 # Initialize formatter for beautiful output

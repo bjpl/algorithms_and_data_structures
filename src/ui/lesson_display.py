@@ -7,8 +7,7 @@ Handles the display of educational content with proper formatting, frames, and v
 import re
 import textwrap
 from typing import List, Optional, Tuple
-from .formatter_compat import TerminalFormatter
-from .unified_formatter import Color
+from .formatter import TerminalFormatter, Color
 
 
 class LessonDisplay:

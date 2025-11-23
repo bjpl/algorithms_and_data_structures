@@ -23,7 +23,7 @@ sys.path.insert(0, str(sys_path))
 
 from notes_manager import NotesManager, integrate_with_cli
 from ui.notes import NotesManager as UINotesManager, RichNote, NoteType, Priority
-from ui.formatter_compat import TerminalFormatter
+from ui.formatter import TerminalFormatter
 
 
 class TestCompleteNoteWorkflows:
@@ -47,7 +47,7 @@ class TestCompleteNoteWorkflows:
     @pytest.fixture
     def learning_session_notes(self, temp_workspace):
         """Simulate a complete learning session with notes"""
-        db_path = Path(temp_workspace) / "curriculum.db"
+        db_path = Path(workspace) / "curriculum.db"
         manager = NotesManager(str(db_path))
         
         # Simulate learning session: Arrays module

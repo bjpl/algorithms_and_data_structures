@@ -4,20 +4,12 @@
 import sys
 import os
 import sqlite3
-import pytest
 from datetime import datetime
 
 # Add the current directory to path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-# Try to import from archived location
-try:
-    from archive.old_cli.curriculum_cli_enhanced import Database
-    DATABASE_AVAILABLE = True
-except ImportError:
-    DATABASE_AVAILABLE = False
-    pytestmark = pytest.mark.skip(reason="curriculum_cli_enhanced module archived/not available")
-    Database = None
+from curriculum_cli_enhanced import Database
 
 def test_progress_persistence():
     """Test that progress is saved to database and persists"""

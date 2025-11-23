@@ -7,24 +7,11 @@ from pathlib import Path
 # Add project to path
 sys.path.insert(0, str(Path(__file__).parent))
 
-from src.ui.unified_formatter import UnifiedFormatter
-from src.ui.formatter_compat import TerminalFormatter
-
-# Create formatter instance for module-level functions
-_formatter = UnifiedFormatter.create()
-
-# Module-level convenience functions
-def success(text): return _formatter.success(text)
-def error(text): return _formatter.error(text)
-def warning(text): return _formatter.warning(text)
-def info(text): return _formatter.info(text)
-def header(text, level=1): return _formatter.header(text, level)
-def create_box(content, title=None): return _formatter.create_box(content, title)
-def progress_bar(current, total): return _formatter.progress_bar(current, total)
-def clear_screen(): return _formatter.clear_screen()
-
-# Alias for backward compatibility
-Formatter = UnifiedFormatter
+from src.ui.unified_formatter import (
+    UnifiedFormatter, Formatter, TerminalFormatter,
+    success, error, warning, info, header, 
+    create_box, progress_bar, clear_screen
+)
 
 def test_unified_formatter():
     """Test all formatter functions"""

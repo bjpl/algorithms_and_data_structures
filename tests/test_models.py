@@ -13,47 +13,40 @@ try:
     from src.models.user import UserProfile, UserProgress
     from src.models.content import Topic, Problem, Concept, LearningPath
     from src.models.curriculum import Curriculum
-    MODELS_AVAILABLE = True
 except ImportError:
-    # For isolated testing - models not available
-    MODELS_AVAILABLE = False
-    BaseModel = object  # Use object as fallback base class
+    # For isolated testing
+    BaseModel = None
     ValidationError = Exception
 
 
 # Mock model implementations for testing
-if MODELS_AVAILABLE:
-    @dataclass
-    class MockModel(BaseModel):
-        """Mock model for testing base functionality."""
-        name: str = "Test"
-        value: int = 0
-        tags: List[str] = None
+@dataclass
+class MockModel(BaseModel):
+    """Mock model for testing base functionality."""
+    name: str = "Test"
+    value: int = 0
+    tags: List[str] = None
+    
+    def __post_init__(self):
+        if self.tags is None:
+            self.tags = []
+        super().__post_init__()
+    
+    def validate(self) -> None:
+        """Validate the mock model."""
+        if not self.name:
+            raise ValidationError("Name cannot be empty")
+        if self.value < 0:
+            raise ValidationError("Value must be non-negative")
 
-        def __post_init__(self):
-            if self.tags is None:
-                self.tags = []
-            super().__post_init__()
 
-        def validate(self) -> None:
-            """Validate the mock model."""
-            if not self.name:
-                raise ValidationError("Name cannot be empty")
-            if self.value < 0:
-                raise ValidationError("Value must be non-negative")
-
-
-    @dataclass
-    class InvalidMockModel(BaseModel):
-        """Mock model that always fails validation."""
-        name: str = ""
-
-        def validate(self) -> None:
-            raise ValidationError("Always invalid")
-else:
-    # Skip creating mock models if BaseModel not available
-    MockModel = None
-    InvalidMockModel = None
+@dataclass
+class InvalidMockModel(BaseModel):
+    """Mock model that always fails validation."""
+    name: str = ""
+    
+    def validate(self) -> None:
+        raise ValidationError("Always invalid")
 
 
 @pytest.mark.unit

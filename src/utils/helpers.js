@@ -10,17 +10,17 @@
  * @returns {Function} Debounced function
  */
 export const debounce = (func, wait, immediate = false) => {
-    let timeout;
-    return function executedFunction(...args) {
-        const later = () => {
-            timeout = null;
-            if (!immediate) func(...args);
-        };
-        const callNow = immediate && !timeout;
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-        if (callNow) func(...args);
+  let timeout;
+  return function executedFunction(...args) {
+    const later = () => {
+      timeout = null;
+      if (!immediate) func(...args);
     };
+    const callNow = immediate && !timeout;
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+    if (callNow) func(...args);
+  };
 };
 
 /**
@@ -31,8 +31,8 @@ export const debounce = (func, wait, immediate = false) => {
  * @returns {string} Truncated text
  */
 export const truncateText = (text, maxLength = 100, suffix = '...') => {
-    if (!text || text.length <= maxLength) return text || '';
-    return text.substring(0, maxLength - suffix.length).trim() + suffix;
+  if (!text || text.length <= maxLength) return text || '';
+  return text.substring(0, maxLength - suffix.length).trim() + suffix;
 };
 
 /**
@@ -41,32 +41,32 @@ export const truncateText = (text, maxLength = 100, suffix = '...') => {
  * @returns {Object} Formatted timestamp object
  */
 export const formatTimestamp = (timestamp) => {
-    const date = new Date(timestamp);
-    const now = new Date();
-    const diffMs = now - date;
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMs / 3600000);
-    const diffDays = Math.floor(diffMs / 86400000);
+  const date = new Date(timestamp);
+  const now = new Date();
+  const diffMs = now - date;
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
 
-    let relative;
-    if (diffMins < 1) {
-        relative = 'Just now';
-    } else if (diffMins < 60) {
-        relative = `${diffMins}m ago`;
-    } else if (diffHours < 24) {
-        relative = `${diffHours}h ago`;
-    } else if (diffDays < 7) {
-        relative = `${diffDays}d ago`;
-    } else {
-        relative = date.toLocaleDateString();
-    }
+  let relative;
+  if (diffMins < 1) {
+    relative = 'Just now';
+  } else if (diffMins < 60) {
+    relative = `${diffMins}m ago`;
+  } else if (diffHours < 24) {
+    relative = `${diffHours}h ago`;
+  } else if (diffDays < 7) {
+    relative = `${diffDays}d ago`;
+  } else {
+    relative = date.toLocaleDateString();
+  }
 
-    return {
-        relative,
-        full: date.toLocaleString(),
-        date: date.toLocaleDateString(),
-        time: date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-    };
+  return {
+    relative,
+    full: date.toLocaleString(),
+    date: date.toLocaleDateString(),
+    time: date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+  };
 };
 
 /**
@@ -75,9 +75,9 @@ export const formatTimestamp = (timestamp) => {
  * @returns {string} Unique ID
  */
 export const generateId = (prefix = '') => {
-    const timestamp = Date.now().toString(36);
-    const randomStr = Math.random().toString(36).substring(2, 8);
-    return prefix ? `${prefix}-${timestamp}-${randomStr}` : `${timestamp}-${randomStr}`;
+  const timestamp = Date.now().toString(36);
+  const randomStr = Math.random().toString(36).substring(2, 8);
+  return prefix ? `${prefix}-${timestamp}-${randomStr}` : `${timestamp}-${randomStr}`;
 };
 
 /**
@@ -86,9 +86,9 @@ export const generateId = (prefix = '') => {
  * @returns {string} Sanitized HTML
  */
 export const sanitizeHtml = (html) => {
-    const div = document.createElement('div');
-    div.textContent = html;
-    return div.innerHTML;
+  const div = document.createElement('div');
+  div.textContent = html;
+  return div.innerHTML;
 };
 
 /**
@@ -97,21 +97,21 @@ export const sanitizeHtml = (html) => {
  * @returns {string} Plain text
  */
 export const extractPlainText = (content) => {
-    // Remove markdown formatting
-    let text = content
-        .replace(/#{1,6}\s+/g, '') // Headers
-        .replace(/\*\*(.*?)\*\*/g, '$1') // Bold
-        .replace(/\*(.*?)\*/g, '$1') // Italic
-        .replace(/\[(.*?)\]\(.*?\)/g, '$1') // Links
-        .replace(/`(.*?)`/g, '$1') // Inline code
-        .replace(/```[\s\S]*?```/g, '') // Code blocks
-        .replace(/^[-\*\+]\s+/gm, '') // List items
-        .replace(/^\d+\.\s+/gm, '') // Numbered lists
-        .replace(/^>\s+/gm, '') // Blockquotes
-        .replace(/\n{2,}/g, '\n') // Multiple newlines
-        .trim();
+  // Remove markdown formatting
+  let text = content
+    .replace(/#{1,6}\s+/g, '') // Headers
+    .replace(/\*\*(.*?)\*\*/g, '$1') // Bold
+    .replace(/\*(.*?)\*/g, '$1') // Italic
+    .replace(/\[(.*?)\]\(.*?\)/g, '$1') // Links
+    .replace(/`(.*?)`/g, '$1') // Inline code
+    .replace(/```[\s\S]*?```/g, '') // Code blocks
+    .replace(/^[-\*\+]\s+/gm, '') // List items
+    .replace(/^\d+\.\s+/gm, '') // Numbered lists
+    .replace(/^>\s+/gm, '') // Blockquotes
+    .replace(/\n{2,}/g, '\n') // Multiple newlines
+    .trim();
   
-    return text;
+  return text;
 };
 
 /**
@@ -120,10 +120,10 @@ export const extractPlainText = (content) => {
  * @returns {number} Word count
  */
 export const countWords = (text) => {
-    if (!text || typeof text !== 'string') return 0;
-    const plainText = extractPlainText(text);
-    const words = plainText.trim().split(/\s+/).filter(word => word.length > 0);
-    return words.length;
+  if (!text || typeof text !== 'string') return 0;
+  const plainText = extractPlainText(text);
+  const words = plainText.trim().split(/\s+/).filter(word => word.length > 0);
+  return words.length;
 };
 
 /**
@@ -132,11 +132,11 @@ export const countWords = (text) => {
  * @returns {string} Formatted size
  */
 export const formatFileSize = (bytes) => {
-    if (bytes === 0) return '0 B';
-    const k = 1024;
-    const sizes = ['B', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
+  if (bytes === 0) return '0 B';
+  const k = 1024;
+  const sizes = ['B', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
 };
 
 /**
@@ -145,7 +145,7 @@ export const formatFileSize = (bytes) => {
  * @returns {string} Escaped string
  */
 export const escapeRegex = (string) => {
-    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 };
 
 /**
@@ -156,11 +156,11 @@ export const escapeRegex = (string) => {
  * @returns {string} Text with highlighted terms
  */
 export const highlightText = (text, searchTerm, className = 'highlight') => {
-    if (!searchTerm || !text) return text;
+  if (!searchTerm || !text) return text;
   
-    const escapedTerm = escapeRegex(searchTerm);
-    const regex = new RegExp(`(${escapedTerm})`, 'gi');
-    return text.replace(regex, `<mark class="${className}">$1</mark>`);
+  const escapedTerm = escapeRegex(searchTerm);
+  const regex = new RegExp(`(${escapedTerm})`, 'gi');
+  return text.replace(regex, `<mark class="${className}">$1</mark>`);
 };
 
 /**
@@ -169,18 +169,18 @@ export const highlightText = (text, searchTerm, className = 'highlight') => {
  * @returns {*} Cloned object
  */
 export const deepClone = (obj) => {
-    if (obj === null || typeof obj !== 'object') return obj;
-    if (obj instanceof Date) return new Date(obj);
-    if (obj instanceof Array) return obj.map(item => deepClone(item));
-    if (typeof obj === 'object') {
-        const clonedObj = {};
-        for (const key in obj) {
-            if (obj.hasOwnProperty(key)) {
-                clonedObj[key] = deepClone(obj[key]);
-            }
-        }
-        return clonedObj;
+  if (obj === null || typeof obj !== 'object') return obj;
+  if (obj instanceof Date) return new Date(obj);
+  if (obj instanceof Array) return obj.map(item => deepClone(item));
+  if (typeof obj === 'object') {
+    const clonedObj = {};
+    for (const key in obj) {
+      if (obj.hasOwnProperty(key)) {
+        clonedObj[key] = deepClone(obj[key]);
+      }
     }
+    return clonedObj;
+  }
 };
 
 /**
@@ -189,10 +189,10 @@ export const deepClone = (obj) => {
  * @returns {boolean} True if empty
  */
 export const isEmpty = (obj) => {
-    if (!obj) return true;
-    if (Array.isArray(obj)) return obj.length === 0;
-    if (typeof obj === 'object') return Object.keys(obj).length === 0;
-    return false;
+  if (!obj) return true;
+  if (Array.isArray(obj)) return obj.length === 0;
+  if (typeof obj === 'object') return Object.keys(obj).length === 0;
+  return false;
 };
 
 /**
@@ -202,12 +202,12 @@ export const isEmpty = (obj) => {
  * @returns {Function} Throttled function
  */
 export const throttle = (func, limit) => {
-    let inThrottle;
-    return function(...args) {
-        if (!inThrottle) {
-            func.apply(this, args);
-            inThrottle = true;
-            setTimeout(() => inThrottle = false, limit);
-        }
-    };
+  let inThrottle;
+  return function(...args) {
+    if (!inThrottle) {
+      func.apply(this, args);
+      inThrottle = true;
+      setTimeout(() => inThrottle = false, limit);
+    }
+  };
 };

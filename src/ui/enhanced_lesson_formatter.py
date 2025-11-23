@@ -7,8 +7,7 @@ Ensures both menu AND content use the same pretty terminal formatting styles
 import re
 import textwrap
 from typing import List, Optional, Dict, Any, Tuple, Union
-from .formatter_compat import TerminalFormatter
-from .unified_formatter import Color
+from .formatter import TerminalFormatter, Color
 from .lesson_display import LessonDisplay
 
 

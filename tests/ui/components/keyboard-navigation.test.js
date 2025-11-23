@@ -34,53 +34,53 @@ describe('Keyboard Navigation Tests', () => {
 
         keyHandler = (event) => {
             switch (event.key) {
-            case 'ArrowUp':
-                navigationState.currentIndex = Math.max(0, navigationState.currentIndex - 1);
-                event.preventDefault();
-                break;
-            case 'ArrowDown':
-                navigationState.currentIndex = Math.min(navigationState.maxIndex, navigationState.currentIndex + 1);
-                event.preventDefault();
-                break;
-            case 'Enter':
-                return 'selected';
-            case 'Escape':
-                if (navigationState.canGoBack) {
-                    navigationState.currentMenu = navigationState.history.pop() || 'main';
-                    navigationState.canGoBack = navigationState.history.length > 0;
-                    return 'back';
-                }
-                break;
-            case 'h':
-                if (event.ctrlKey) {
-                    return 'help';
-                }
-                break;
-            case 'q':
-                if (event.ctrlKey) {
-                    return 'quit';
-                }
-                break;
-            case 'Tab':
-                event.preventDefault();
-                return 'tab';
-            case 'Home':
-                navigationState.currentIndex = 0;
-                event.preventDefault();
-                break;
-            case 'End':
-                navigationState.currentIndex = navigationState.maxIndex;
-                event.preventDefault();
-                break;
-            default:
-                // Handle number keys for direct selection
-                if (/^[0-9]$/.test(event.key)) {
-                    const num = parseInt(event.key);
-                    if (num <= navigationState.maxIndex) {
-                        navigationState.currentIndex = num;
-                        return 'direct-select';
+                case 'ArrowUp':
+                    navigationState.currentIndex = Math.max(0, navigationState.currentIndex - 1);
+                    event.preventDefault();
+                    break;
+                case 'ArrowDown':
+                    navigationState.currentIndex = Math.min(navigationState.maxIndex, navigationState.currentIndex + 1);
+                    event.preventDefault();
+                    break;
+                case 'Enter':
+                    return 'selected';
+                case 'Escape':
+                    if (navigationState.canGoBack) {
+                        navigationState.currentMenu = navigationState.history.pop() || 'main';
+                        navigationState.canGoBack = navigationState.history.length > 0;
+                        return 'back';
                     }
-                }
+                    break;
+                case 'h':
+                    if (event.ctrlKey) {
+                        return 'help';
+                    }
+                    break;
+                case 'q':
+                    if (event.ctrlKey) {
+                        return 'quit';
+                    }
+                    break;
+                case 'Tab':
+                    event.preventDefault();
+                    return 'tab';
+                case 'Home':
+                    navigationState.currentIndex = 0;
+                    event.preventDefault();
+                    break;
+                case 'End':
+                    navigationState.currentIndex = navigationState.maxIndex;
+                    event.preventDefault();
+                    break;
+                default:
+                    // Handle number keys for direct selection
+                    if (/^[0-9]$/.test(event.key)) {
+                        const num = parseInt(event.key);
+                        if (num <= navigationState.maxIndex) {
+                            navigationState.currentIndex = num;
+                            return 'direct-select';
+                        }
+                    }
             }
             return null;
         };

@@ -159,13 +159,13 @@ describe('UI Components Tests', () => {
         test('should validate input components', () => {
             const validateInput = (input, type = 'text') => {
                 switch (type) {
-                case 'number':
-                    return !isNaN(Number(input)) && input.trim() !== '';
-                case 'email':
-                    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input);
-                case 'text':
-                default:
-                    return input.trim().length > 0;
+                    case 'number':
+                        return !isNaN(Number(input)) && input.trim() !== '';
+                    case 'email':
+                        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input);
+                    case 'text':
+                    default:
+                        return input.trim().length > 0;
                 }
             };
 

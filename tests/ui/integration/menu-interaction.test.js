@@ -66,18 +66,18 @@ describe('Menu Interaction Integration Tests', () => {
                 const itemCount = this.getVisibleItems().length;
                 
                 switch (direction) {
-                case 'up':
-                    this.state.selectedIndex = (this.state.selectedIndex - 1 + itemCount) % itemCount;
-                    break;
-                case 'down':
-                    this.state.selectedIndex = (this.state.selectedIndex + 1) % itemCount;
-                    break;
-                case 'first':
-                    this.state.selectedIndex = 0;
-                    break;
-                case 'last':
-                    this.state.selectedIndex = itemCount - 1;
-                    break;
+                    case 'up':
+                        this.state.selectedIndex = (this.state.selectedIndex - 1 + itemCount) % itemCount;
+                        break;
+                    case 'down':
+                        this.state.selectedIndex = (this.state.selectedIndex + 1) % itemCount;
+                        break;
+                    case 'first':
+                        this.state.selectedIndex = 0;
+                        break;
+                    case 'last':
+                        this.state.selectedIndex = itemCount - 1;
+                        break;
                 }
                 
                 this.state.lastInteraction = { type: 'navigate', direction, timestamp: Date.now() };
@@ -90,16 +90,16 @@ describe('Menu Interaction Integration Tests', () => {
                 interactionLog.push({ action: 'select', item: item.id, type: item.type || 'default' });
                 
                 switch (item.type) {
-                case 'submenu':
-                    return this.openSubmenu(item.id);
-                case 'toggle':
-                    return this.toggleItem(item.id);
-                case 'select':
-                    return this.openSelectDialog(item.id);
-                case 'action':
-                    return this.executeAction(item.id);
-                default:
-                    return this.activateItem(item.id);
+                    case 'submenu':
+                        return this.openSubmenu(item.id);
+                    case 'toggle':
+                        return this.toggleItem(item.id);
+                    case 'select':
+                        return this.openSelectDialog(item.id);
+                    case 'action':
+                        return this.executeAction(item.id);
+                    default:
+                        return this.activateItem(item.id);
                 }
             },
             getCurrentItem: function() {
@@ -223,43 +223,43 @@ describe('Menu Interaction Integration Tests', () => {
         keyHandler = {
             handleKey: function(key, modifiers = {}) {
                 switch (key) {
-                case 'ArrowUp':
-                    menuSystem.navigate('up');
-                    return true;
-                case 'ArrowDown':
-                    menuSystem.navigate('down');
-                    return true;
-                case 'Home':
-                    menuSystem.navigate('first');
-                    return true;
-                case 'End':
-                    menuSystem.navigate('last');
-                    return true;
-                case 'Enter':
-                    return menuSystem.selectItem();
-                case 'Escape':
-                    if (menuSystem.state.searchQuery) {
-                        menuSystem.clearSearch();
+                    case 'ArrowUp':
+                        menuSystem.navigate('up');
                         return true;
-                    }
-                    return menuSystem.goBack();
-                case 'Backspace':
-                    if (modifiers.ctrl) {
-                        menuSystem.clearSearch();
+                    case 'ArrowDown':
+                        menuSystem.navigate('down');
                         return true;
-                    }
-                    return menuSystem.goBack();
-                default:
-                    // Handle number shortcuts
-                    if (/^[0-9]$/.test(key)) {
-                        return menuSystem.handleShortcut(key);
-                    }
-                    // Handle search input
-                    if (/^[a-zA-Z\\s]$/.test(key)) {
-                        menuSystem.search(menuSystem.state.searchQuery + key);
+                    case 'Home':
+                        menuSystem.navigate('first');
                         return true;
-                    }
-                    return false;
+                    case 'End':
+                        menuSystem.navigate('last');
+                        return true;
+                    case 'Enter':
+                        return menuSystem.selectItem();
+                    case 'Escape':
+                        if (menuSystem.state.searchQuery) {
+                            menuSystem.clearSearch();
+                            return true;
+                        }
+                        return menuSystem.goBack();
+                    case 'Backspace':
+                        if (modifiers.ctrl) {
+                            menuSystem.clearSearch();
+                            return true;
+                        }
+                        return menuSystem.goBack();
+                    default:
+                        // Handle number shortcuts
+                        if (/^[0-9]$/.test(key)) {
+                            return menuSystem.handleShortcut(key);
+                        }
+                        // Handle search input
+                        if (/^[a-zA-Z\\s]$/.test(key)) {
+                            menuSystem.search(menuSystem.state.searchQuery + key);
+                            return true;
+                        }
+                        return false;
                 }
             }
         };

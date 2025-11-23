@@ -225,16 +225,16 @@ describe('Render Performance Tests', () => {
                 // Execute all renders in parallel
                 const promises = renderTasks.map(async task => {
                     switch (task.type) {
-                    case 'menu':
-                        return await this.renderMenu(task.items, task.options);
-                    case 'table':
-                        return await this.renderTable(task.data, task.columns);
-                    case 'progress':
-                        return await this.renderProgressBar(task.percentage, task.options);
-                    case 'code':
-                        return await this.renderCodeBlock(task.code, task.language);
-                    default:
-                        return { rendered: false, error: 'Unknown render type' };
+                        case 'menu':
+                            return await this.renderMenu(task.items, task.options);
+                        case 'table':
+                            return await this.renderTable(task.data, task.columns);
+                        case 'progress':
+                            return await this.renderProgressBar(task.percentage, task.options);
+                        case 'code':
+                            return await this.renderCodeBlock(task.code, task.language);
+                        default:
+                            return { rendered: false, error: 'Unknown render type' };
                     }
                 });
                 
