@@ -12,7 +12,8 @@ from typing import List, Dict, Optional, Any, Tuple
 from dataclasses import dataclass, field, asdict
 from enum import Enum
 
-from .formatter import TerminalFormatter, Color, Theme
+from .formatter_compat import TerminalFormatter
+from .unified_formatter import Color, Theme
 from .navigation import NavigationController, MenuItem
 
 

@@ -246,7 +246,7 @@ def get_migration_guide() -> str:
 ### TerminalFormatter → UnifiedFormatter or FormatterFactory
 ```python
 # OLD:
-from src.ui.formatter import TerminalFormatter
+from src.ui.formatter_compat import TerminalFormatter
 formatter = TerminalFormatter()
 
 # NEW (Option 1 - Direct):
@@ -335,3 +335,7 @@ def get_compat_formatter() -> UnifiedFormatter:
     if _compat_formatter is None:
         _compat_formatter = FormatterFactory.auto_detect_formatter()
     return _compat_formatter
+
+
+# Export Color as WindowsColor for backward compatibility
+WindowsColor = Color

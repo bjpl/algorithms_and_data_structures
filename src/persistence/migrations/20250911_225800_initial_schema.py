@@ -5,7 +5,7 @@ Created: 2025-09-11T22:58:00.000000
 """
 
 from typing import Dict, Any
-from ..storage_backend import StorageBackend, SQLiteBackend, PostgreSQLBackend
+from ..backends import StorageBackend, SQLiteBackend, PostgreSQLBackend
 
 
 def up(backend: StorageBackend, config: Dict[str, Any]) -> None:

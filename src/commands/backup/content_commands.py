@@ -19,7 +19,7 @@ from pathlib import Path
 from datetime import datetime
 
 from .base import BaseCommand, CommandResult, CommandMetadata, CommandCategory
-from ..ui.formatter import TerminalFormatter
+from ..ui.formatter_compat import TerminalFormatter
 from ..models.content import Content
 from ..core.exceptions import CLIError
 
